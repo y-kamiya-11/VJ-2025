@@ -18,6 +18,12 @@ function drawLogs() {
   textSize(48);
   noStroke();
 
+  // 入力中の文字列を一番下に描画
+  fill(255, 255, 255, alpha);
+  text(inputBuffer, 10, y);
+  y -= lineHeight;
+
+  // ログメッセージを最新のものから順に描画
   for (let i = logMessages.length - 1; i >= 0; i--) {
     let msg = logMessages[i];
     let age = now - msg.createdAt;
@@ -26,7 +32,7 @@ function drawLogs() {
     if (age > displayDuration) {
       alpha = map(age, displayDuration, displayDuration + fadeDuration, 100, 0);
       if (alpha <= 0) {
-        logMessages.splice(i, 1);
+        logMessages.splice(i, 1); // 生存時間を過ぎた要素はlogMessagesから削除
         continue;
       }
     }

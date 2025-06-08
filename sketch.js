@@ -6,6 +6,8 @@ let transitionSpeed = 5;
 let currentBuffer, targetBuffer;
 let customFont;
 
+let inputBuffer = "";
+
 function preload() {
   customFont = loadFont('assets/fonts/BestTen-CRT.otf');
 }
@@ -55,10 +57,58 @@ function draw() {
   drawLogs();
 }
 
+function keyTyped() {
+  if (keyCode !== ENTER && keyCode !== BACKSPACE) {
+    inputBuffer += key;
+  }
+}
+
 function keyPressed() {
+  if (keyCode === BACKSPACE) {
+    inputBuffer = inputBuffer.slice(0, -1);
+  }
+
+  if (keyCode === ENTER) {
+    handleCommand(inputBuffer);
+    addLog(inputBuffer);
+    inputBuffer = "";
+  }
+}
+
+function handleCommand(command) {
+  let scenes = {
+  '1': scene1,
+  '2': scene2,
+  '3': scene3
+  // 以後追加ならここだけ追記
+};
+
+  if (command.startsWith("scene=")) {
+    let sceneNum = command.split("=")[1];
+    if (scenes[sceneNum]) {
+      targetScene = scenes[sceneNum];
+      addLog("Switched to Scene " + sceneNum);
+      targetScene.setupScene(targetBuffer);
+    } else {
+      addLog("Scene " + sceneNum + " not found.");
+    }
+  } else if (command.includes("=")) {
+    let [key, value] = command.split("=");
+    if (currentScene.settings && key in currentScene.settings) {
+      currentScene.settings[key] = value;
+      addLog(`Set ${key} = ${value}`);
+    } else {
+      addLog("Invalid key: " + key);
+    }
+  } else {
+    addLog("Unknown command: " + command);
+  }
+}
+
+/*function keyPressed() {
   if (key === '1') targetScene = scene1;
   if (key === '2') targetScene = scene2;
   if (key === '3') targetScene = scene3;
 
   addLog("Transition to Scene " + key + "...");
-}
+}*/
