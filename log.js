@@ -18,8 +18,16 @@ function drawLogs() {
   textSize(48);
   noStroke();
 
+  // 現在の背景色取得（デフォルト黒）
+  let bg = currentScene.settings?.backgroundColor || color(0);
+  let brightnessValue = brightness(bg);
+
+  // 背景の明るさに応じて文字色決定
+  let textCol = (brightnessValue > 50) ? color(0) : color(255);
+
   // 入力中の文字列を一番下に描画
-  fill(255, 255, 255, alpha);
+  textCol.setAlpha(100);
+  fill(textCol);
   text(inputBuffer, 10, y);
   y -= lineHeight;
 
@@ -37,7 +45,8 @@ function drawLogs() {
       }
     }
 
-    fill(255, 255, 255, alpha);
+    textCol.setAlpha(alpha);
+    fill(textCol);
     text(msg.text, 10, y);
     y -= lineHeight;
   }

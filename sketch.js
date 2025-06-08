@@ -20,6 +20,7 @@ function setup() {
 
   currentScene = scene1;
   targetScene = scene1;
+  currentScene.setupScene(currentBuffer);
 }
 
 function draw() {

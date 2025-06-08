@@ -1,6 +1,10 @@
 let scene2 = {
+  settings: {
+    backgroundColor: null
+  },
+
   setupScene(g) {
-    g.background(0);
+    this.settings.backgroundColor = color(0);
   },
   drawScene(g) {
     g.background(0, 50);

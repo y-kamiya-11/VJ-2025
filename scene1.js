@@ -1,14 +1,15 @@
 let scene1 = {
   settings: {
-    ellipse: 20
+    ellipse: 20, 
+    backgroundColor: null,
   },
 
   setupScene(g) {
-    g.background(0);
+    this.settings.backgroundColor = color(0, 20);
   },
 
   drawScene(g) {
-    g.background(0, 20);
+    g.background(this.settings.backgroundColor);
     g.noStroke();
     for (let i = 0; i < this.settings.ellipse; i++) {
       g.fill(random(360), 80, 100);
