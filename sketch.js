@@ -7,6 +7,7 @@ let currentBuffer, targetBuffer;
 let customFont;
 
 let inputBuffer = "";
+let flashAlpha = 0;
 
 function preload() {
   customFont = loadFont('assets/fonts/BestTen-CRT.otf');
@@ -57,6 +58,7 @@ function draw() {
 
   drawLogs();
 
+  // 1キー・2キーで点滅
   if (keyIsDown(49)) { // '1'キー
     let blinkAlpha = map(sin(millis()*0.1)*3, -1, 1, 0, 90);
     fill(255, blinkAlpha);
@@ -68,6 +70,15 @@ function draw() {
     fill(0, blinkAlpha);
     noStroke();
     rect(0, 0, width, height);
+  }
+
+  // スペースキーでフラッシュ
+  if (flashAlpha > 0) {
+    fill(100, flashAlpha);
+    noStroke();
+    rect(0, 0, width, height);
+    flashAlpha -= 15; // 減衰スピード調整（ここ好みで）
+    flashAlpha = max(flashAlpha, 0);
   }
 }
 
@@ -82,6 +93,10 @@ function keyPressed() {
     inputBuffer = inputBuffer.slice(0, -1);
   }
 
+  if (keyCode === 32) { // スペースキー
+    flashAlpha = 255;
+  }
+
   if (keyCode === ENTER) {
     handleCommand(inputBuffer);
     addLog(inputBuffer);
@@ -94,7 +109,8 @@ function handleCommand(command) {
   '1': scene1,
   '2': scene2,
   '3': scene3,
-  '4': scene4
+  '4': scene4, 
+  '5': scene5
 };
 
   if (command.startsWith("scene=")) {
