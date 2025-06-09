@@ -56,6 +56,19 @@ function draw() {
   }
 
   drawLogs();
+
+  if (keyIsDown(49)) { // '1'キー
+    let blinkAlpha = map(sin(millis()*0.1)*3, -1, 1, 0, 90);
+    fill(255, blinkAlpha);
+    noStroke();
+    rect(0, 0, width, height);
+  }
+  if (keyIsDown(50)) { // '2'キー
+    let blinkAlpha = map(sin(millis()*0.1)*5+3, -1, 1, 0, 255);
+    fill(0, blinkAlpha);
+    noStroke();
+    rect(0, 0, width, height);
+  }
 }
 
 function keyTyped() {
@@ -80,8 +93,8 @@ function handleCommand(command) {
   let scenes = {
   '1': scene1,
   '2': scene2,
-  '3': scene3
-  // 以後追加ならここだけ追記
+  '3': scene3,
+  '4': scene4
 };
 
   if (command.startsWith("scene=")) {
@@ -106,10 +119,3 @@ function handleCommand(command) {
   }
 }
 
-/*function keyPressed() {
-  if (key === '1') targetScene = scene1;
-  if (key === '2') targetScene = scene2;
-  if (key === '3') targetScene = scene3;
-
-  addLog("Transition to Scene " + key + "...");
-}*/
