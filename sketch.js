@@ -7,7 +7,7 @@ let currentBuffer, targetBuffer;
 let customFont;
 
 let inputBuffer = "";
-let flashAlpha = 0;
+let glowAlpha = 0;
 
 function preload() {
   customFont = loadFont('assets/fonts/BestTen-CRT.otf');
@@ -17,6 +17,7 @@ function setup() {
   createCanvas(1920, 1080);
   currentBuffer = createGraphics(width, height);
   targetBuffer  = createGraphics(width, height);
+  glowBuffer = createGraphics(width, height);
   textFont(customFont);
 
   currentScene = scene6;
@@ -72,13 +73,29 @@ function draw() {
     rect(0, 0, width, height);
   }
 
-  // スペースキーでフラッシュ
-  if (flashAlpha > 0) {
-    fill(100, flashAlpha);
-    noStroke();
-    rect(0, 0, width, height);
-    flashAlpha -= 15; // 減衰スピード調整（ここ好みで）
-    flashAlpha = max(flashAlpha, 0);
+  // スペースキーでグロー効果発動
+  if (glowAlpha > 0) {
+    // currentBufferをglowBufferにコピー
+    glowBuffer.image(currentBuffer, 0, 0);
+
+    // 加算合成して表示
+    blendMode(ADD);
+    tint(255, glowAlpha);
+    glowBuffer.filter(BLUR, 2);
+    image(glowBuffer, 0, 0);
+    glowBuffer.filter(BLUR, 4);
+    image(glowBuffer, 0, 0);
+    glowBuffer.filter(BLUR, 8);
+    image(glowBuffer, 0, 0);
+    glowBuffer.filter(BLUR, 16);
+    image(glowBuffer, 0, 0);
+    glowBuffer.filter(BLUR, 32);
+    image(glowBuffer, 0, 0);
+    noTint();
+    blendMode(BLEND);
+
+    glowAlpha -= 11;  // 減衰スピード（調整可）
+    glowAlpha = max(glowAlpha, 0);
   }
 }
 
@@ -94,7 +111,7 @@ function keyPressed() {
   }
 
   if (keyCode === 32) { // スペースキー
-    flashAlpha = 255;
+    glowAlpha = 180;
   }
 
   if (keyCode === ENTER) {

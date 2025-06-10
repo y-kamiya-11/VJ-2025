@@ -1,7 +1,7 @@
 let scene6 = {
   settings: {
     pointCount: 250,
-    fillRatio: 0.05,
+    fillRatio: 0.03,
     shapeCount: 200,
   },
 
@@ -18,6 +18,8 @@ let scene6 = {
     this.colorBuffer.colorMode(HSB, 360, 100, 100, 255);
     this.maskBuffer = createGraphics(g.width, g.height);
     this.maskBuffer.clear();
+    this.glowBuffer = createGraphics(g.width, g.height);
+    this.glowBuffer.colorMode(HSB, 360, 100, 100, 255);
 
     // 点を適当に配置
     for (let i = 0; i < this.settings.pointCount; i++) {
@@ -96,7 +98,7 @@ let scene6 = {
     // マスク用バッファ
     this.maskBuffer.clear();
     this.maskBuffer.noStroke();
-    this.maskBuffer.fill(255);
+    this.maskBuffer.fill(50, 150, 255, 255);
 
     for (let t of this.fillTriangles) {
       this.maskBuffer.beginShape();
@@ -106,7 +108,7 @@ let scene6 = {
       this.maskBuffer.endShape(CLOSE);
 
       // 可視化用 α127白塗り
-      g.fill(255, 127);
+      g.fill(0, 0, 200, 127);
       g.beginShape();
       for (let p of t) {
         g.vertex(p.x, p.y);
@@ -119,7 +121,21 @@ let scene6 = {
     let colorImage = this.colorBuffer.get(0, 0, g.width, g.height);
     colorImage.mask(maskImage);
 
+    // グロー用バッファにカラーイメージを描画
+    this.glowBuffer.clear();
+    this.glowBuffer.image(this.maskBuffer, 0, 0);
+
     // 合成
     g.image(colorImage, 0, 0);
+
+    // グロー
+    g.tint(255, 10);
+    this.glowBuffer.filter(BLUR, 4);
+    g.blend(this.glowBuffer, 0, 0, g.width, g.height, 0, 0, g.width, g.height, SCREEN);
+    this.glowBuffer.filter(BLUR, 8);
+    g.blend(this.glowBuffer, 0, 0, g.width, g.height, 0, 0, g.width, g.height, SCREEN);
+    this.glowBuffer.filter(BLUR, 16);
+    g.blend(this.glowBuffer, 0, 0, g.width, g.height, 0, 0, g.width, g.height, SCREEN);
+    g.noTint();
   }
 };
