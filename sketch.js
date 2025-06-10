@@ -128,7 +128,8 @@ function handleCommand(command) {
   '3': scene3,
   '4': scene4, 
   '5': scene5, 
-  '6': scene6, 
+  '6': scene6,
+  '7': scene7,  
 };
 
   if (command.startsWith("scene=")) {
