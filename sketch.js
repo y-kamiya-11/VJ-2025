@@ -130,6 +130,7 @@ function handleCommand(command) {
   '5': scene5, 
   '6': scene6,
   '7': scene7,  
+  '8': scene8,  
 };
 
   if (command.startsWith("scene=")) {
