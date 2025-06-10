@@ -19,8 +19,8 @@ function setup() {
   targetBuffer  = createGraphics(width, height);
   textFont(customFont);
 
-  currentScene = scene1;
-  targetScene = scene1;
+  currentScene = scene6;
+  targetScene = scene6;
   currentScene.setupScene(currentBuffer);
 }
 
@@ -110,7 +110,8 @@ function handleCommand(command) {
   '2': scene2,
   '3': scene3,
   '4': scene4, 
-  '5': scene5
+  '5': scene5, 
+  '6': scene6, 
 };
 
   if (command.startsWith("scene=")) {
