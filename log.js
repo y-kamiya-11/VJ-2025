@@ -7,7 +7,7 @@ function addLog(message) {
   });
 }
 
-function drawLogs() {
+function drawLogs(alpha=100) {
   let now = millis();
   let displayDuration = 10000;
   let fadeDuration = 3000;
@@ -26,7 +26,7 @@ function drawLogs() {
   let textCol = (brightnessValue > 50) ? color(0) : color(255);
 
   // 入力中の文字列を一番下に描画
-  textCol.setAlpha(100);
+  textCol.setAlpha(alpha);
   fill(textCol);
   text(inputBuffer, 10, y);
   y -= lineHeight;
@@ -35,7 +35,6 @@ function drawLogs() {
   for (let i = logMessages.length - 1; i >= 0; i--) {
     let msg = logMessages[i];
     let age = now - msg.createdAt;
-    let alpha = 100;
 
     if (age > displayDuration) {
       alpha = map(age, displayDuration, displayDuration + fadeDuration, 100, 0);

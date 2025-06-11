@@ -10,9 +10,9 @@ let inputBuffer = "";
 let glowAlpha = 0;
 
 // フレームレート関連の変数
-let defaultFrameRate = 60; // デフォルトのフレームレート
-let acceleratedFrameRate = 120; // 加速時のフレームレート
-let deceleratedFrameRate = 24; // 減速時のフレームレート
+let defaultFrameRate = 40; // デフォルトのフレームレート
+let acceleratedFrameRate = 80; // 加速時のフレームレート
+let deceleratedFrameRate = 18; // 減速時のフレームレート
 let currentAppFrameRate = defaultFrameRate; // 現在のアプリのフレームレート
 
 function preload() {
@@ -63,7 +63,12 @@ function draw() {
     image(currentBuffer, 0, 0);
   }
 
-  drawLogs();
+  // scene8（ログのみの演出）の場合はalpha=255
+  if (currentScene === scene8) {
+    drawLogs(255);
+  } else {
+    drawLogs();
+  }
 
   // 1キー・2キーで点滅
   if (keyIsDown(49) && inputBuffer === "") { // '1'キー
