@@ -161,6 +161,11 @@ function draw() {
     let s = shapeOverlays[i];
     push();
     translate(s.x, s.y);
+    let easedRotationFactor = 1 - easeOut(s.elapsedTime, s.lifeSpan, 6); 
+    s.rotation += s.initialRotationSpeed * easedRotationFactor;
+
+    // 不透明度の減衰と同じように、経過時間を更新
+    s.elapsedTime++; 
     rotate(s.rotation);
     noFill();
     stroke(255, s.alpha);
@@ -179,7 +184,6 @@ function draw() {
     }
     pop();
 
-    s.rotation += s.rotationSpeed;
     s.alpha -= 5; // 不透明度を減らすスピード
     if (s.alpha <= 0) {
       shapeOverlays.splice(i, 1); // 透明になったら配列から削除
@@ -192,7 +196,6 @@ function keyTyped() {
   const targetKeyCodes = [32, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 68, 70, 74, 75];
   if (inputBuffer === "" && targetKeyCodes.includes(keyCode)) {
     inputBuffer += key;
-    addLog(inputBuffer);
     inputBuffer = "";
     return; // 早期return
   }
@@ -231,17 +234,15 @@ function keyPressed() {
   // 4キー・5キー・6キーでoverlayBufferを描画
   if (keyCode === 52) { // '4'キー
     overlayActiveTime[0] = millis();
-    addLog("Overlay 1 activated");
   }
   if (keyCode === 53) { // '5'キー
     overlayActiveTime[1] = millis();
-    addLog("Overlay 2 activated");
   }
   if (keyCode === 54) { // '6'キー
     overlayActiveTime[2] = millis();
-    addLog("Overlay 3 activated");
   }
 
+  // D・F・J・Kキーでシェイプオーバーレイ描画
   // D・F・J・Kキーでシェイプオーバーレイ描画
   if (keyCode === 68) { // 'D'キー (四角形)
     shapeOverlays.push({
@@ -250,8 +251,10 @@ function keyPressed() {
       y: random(height),
       size: random(50, 150),
       rotation: random(TWO_PI),
-      rotationSpeed: random(-0.05, 0.05),
-      alpha: 255
+      initialRotationSpeed: random(-0.1, 0.1), // 初期回転速度を保持
+      alpha: 255,
+      elapsedTime: 0, // 経過時間を初期化
+      lifeSpan: 50 // 例: 50フレームで回転がほぼ停止する
     });
   }
   if (keyCode === 70) { // 'F'キー (三角形)
@@ -261,8 +264,10 @@ function keyPressed() {
       y: random(height),
       size: random(50, 150),
       rotation: random(TWO_PI),
-      rotationSpeed: random(-0.05, 0.05),
-      alpha: 255
+      initialRotationSpeed: random(-0.1, 0.1),
+      alpha: 255,
+      elapsedTime: 0,
+      lifeSpan: 50
     });
   }
   if (keyCode === 74) { // 'J'キー (丸)
@@ -272,8 +277,10 @@ function keyPressed() {
       y: random(height),
       size: random(50, 150),
       rotation: random(TWO_PI),
-      rotationSpeed: random(-0.05, 0.05),
-      alpha: 255
+      initialRotationSpeed: random(-0.1, 0.1),
+      alpha: 255,
+      elapsedTime: 0,
+      lifeSpan: 50
     });
   }
   if (keyCode === 75) { // 'K'キー (×)
@@ -283,8 +290,10 @@ function keyPressed() {
       y: random(height),
       size: random(50, 150),
       rotation: random(TWO_PI),
-      rotationSpeed: random(-0.05, 0.05),
-      alpha: 255
+      initialRotationSpeed: random(-0.1, 0.1),
+      alpha: 255,
+      elapsedTime: 0,
+      lifeSpan: 50
     });
   }
 }
