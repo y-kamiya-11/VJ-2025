@@ -9,10 +9,19 @@ let customFont;
 let inputBuffer = "";
 let glowAlpha = 0;
 
+let intensity = 50; // 0から100の範囲で設定（仮の値）
+
+// オーバーレイ関連の変数
+let overlayBuffer1, overlayBuffer2, overlayBuffer3;
+let overlayActiveTime = [0, 0, 0]; // 各オーバーレイの描画開始時刻
+
+// シェイプオーバーレイ関連の変数
+let shapeOverlays = [];
+
 // フレームレート関連の変数
-let defaultFrameRate = 40; // デフォルトのフレームレート
-let acceleratedFrameRate = 80; // 加速時のフレームレート
-let deceleratedFrameRate = 18; // 減速時のフレームレート
+let defaultFrameRate = 60; // デフォルトのフレームレート
+let acceleratedFrameRate = 120; // 加速時のフレームレート
+let deceleratedFrameRate = 24; // 減速時のフレームレート
 let currentAppFrameRate = defaultFrameRate; // 現在のアプリのフレームレート
 
 function preload() {
@@ -24,6 +33,9 @@ function setup() {
   currentBuffer = createGraphics(width, height);
   targetBuffer  = createGraphics(width, height);
   glowBuffer = createGraphics(width, height);
+  overlayBuffer1 = createGraphics(width, height);
+  overlayBuffer2 = createGraphics(width, height);
+  overlayBuffer3 = createGraphics(width, height);
   textFont(customFont);
 
   currentScene = scene6;
@@ -128,11 +140,57 @@ function draw() {
     currentAppFrameRate = lerp(currentAppFrameRate, defaultFrameRate, 0.15); // 0.05は補間速度（調整可）
     frameRate(currentAppFrameRate);
   }
+
+  // オーバーレイの描画
+  // overlay1は仮の関数名。実際のオーバーレイ描画関数に置き換える
+  if (overlayActiveTime[0] > 0 && millis() - overlayActiveTime[0] < 5000) {
+    overlay1(overlayBuffer1); // overlay1関数でoverlayBuffer1に描画
+    image(overlayBuffer1, 0, 0);
+  }
+  if (overlayActiveTime[1] > 0 && millis() - overlayActiveTime[1] < 5000) {
+    overlay2(overlayBuffer2); // overlay2関数でoverlayBuffer2に描画
+    image(overlayBuffer2, 0, 0);
+  }
+  if (overlayActiveTime[2] > 0 && millis() - overlayActiveTime[2] < 5000) {
+    overlay3(overlayBuffer3); // overlay3関数でoverlayBuffer3に描画
+    image(overlayBuffer3, 0, 0);
+  }
+
+  // シェイプオーバーレイの描画と更新
+  for (let i = shapeOverlays.length - 1; i >= 0; i--) {
+    let s = shapeOverlays[i];
+    push();
+    translate(s.x, s.y);
+    rotate(s.rotation);
+    noFill();
+    stroke(255, s.alpha);
+    strokeWeight(2);
+
+    if (s.type === 'rect') {
+      rectMode(CENTER);
+      rect(0, 0, s.size, s.size);
+    } else if (s.type === 'tri') {
+      triangle(0, -s.size / 2, -s.size / 2, s.size / 2, s.size / 2, s.size / 2);
+    } else if (s.type === 'circle') {
+      ellipse(0, 0, s.size, s.size);
+    } else if (s.type === 'cross') {
+      line(-s.size / 2, -s.size / 2, s.size / 2, s.size / 2);
+      line(s.size / 2, -s.size / 2, -s.size / 2, s.size / 2);
+    }
+    pop();
+
+    s.rotation += s.rotationSpeed;
+    s.alpha -= 5; // 不透明度を減らすスピード
+    if (s.alpha <= 0) {
+      shapeOverlays.splice(i, 1); // 透明になったら配列から削除
+    }
+  }
 }
 
 function keyTyped() {
   // 効果キーが1文字目に押された場合は、inputBufferに残さずにログに追加
-  if (inputBuffer === "" && (keyCode === 49 || keyCode === 50 || keyCode === 56 || keyCode === 57 || keyCode === 32)) {
+  const targetKeyCodes = [32, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 68, 70, 74, 75];
+  if (inputBuffer === "" && targetKeyCodes.includes(keyCode)) {
     inputBuffer += key;
     addLog(inputBuffer);
     inputBuffer = "";
@@ -157,6 +215,77 @@ function keyPressed() {
     handleCommand(inputBuffer);
     addLog(inputBuffer);
     inputBuffer = "";
+  }
+
+  // ↑キーでintensityを上げる
+  if (keyCode === UP_ARROW) {
+    intensity = min(intensity + 5, 100); // 最大100
+    addLog("intensity: " + intensity);
+  }
+  // ↓キーでintensityを下げる
+  if (keyCode === DOWN_ARROW) {
+    intensity = max(intensity - 5, 0); // 最小0
+    addLog("intensity: " + intensity);
+  }
+
+  // 4キー・5キー・6キーでoverlayBufferを描画
+  if (keyCode === 52) { // '4'キー
+    overlayActiveTime[0] = millis();
+    addLog("Overlay 1 activated");
+  }
+  if (keyCode === 53) { // '5'キー
+    overlayActiveTime[1] = millis();
+    addLog("Overlay 2 activated");
+  }
+  if (keyCode === 54) { // '6'キー
+    overlayActiveTime[2] = millis();
+    addLog("Overlay 3 activated");
+  }
+
+  // D・F・J・Kキーでシェイプオーバーレイ描画
+  if (keyCode === 68) { // 'D'キー (四角形)
+    shapeOverlays.push({
+      type: 'rect',
+      x: random(width),
+      y: random(height),
+      size: random(50, 150),
+      rotation: random(TWO_PI),
+      rotationSpeed: random(-0.05, 0.05),
+      alpha: 255
+    });
+  }
+  if (keyCode === 70) { // 'F'キー (三角形)
+    shapeOverlays.push({
+      type: 'tri',
+      x: random(width),
+      y: random(height),
+      size: random(50, 150),
+      rotation: random(TWO_PI),
+      rotationSpeed: random(-0.05, 0.05),
+      alpha: 255
+    });
+  }
+  if (keyCode === 74) { // 'J'キー (丸)
+    shapeOverlays.push({
+      type: 'circle',
+      x: random(width),
+      y: random(height),
+      size: random(50, 150),
+      rotation: random(TWO_PI),
+      rotationSpeed: random(-0.05, 0.05),
+      alpha: 255
+    });
+  }
+  if (keyCode === 75) { // 'K'キー (×)
+    shapeOverlays.push({
+      type: 'cross',
+      x: random(width),
+      y: random(height),
+      size: random(50, 150),
+      rotation: random(TWO_PI),
+      rotationSpeed: random(-0.05, 0.05),
+      alpha: 255
+    });
   }
 }
 
