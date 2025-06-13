@@ -28,7 +28,7 @@ function drawLogs(alpha=100) {
   // 入力中の文字列を一番下に描画
   textCol.setAlpha(alpha);
   fill(textCol);
-  text(inputBuffer, 10, y);
+  text(getInputBuffer(), 10, y);
   y -= lineHeight;
 
   // ログメッセージを最新のものから順に描画
