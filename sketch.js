@@ -29,14 +29,12 @@ function draw() {
     // シェイプオーバーレイの描画と更新
     drawShapeOverlays(); // effects.jsから参照
 
-    // --- 追加部分: CキーとVキーのブロックノイズ描画 ---
     if (keyIsDown(KEY_C) && getInputBuffer() === "") {
         generateBlockNoise(); // effects.jsから参照
     } else if (keyIsDown(KEY_V) && getInputBuffer() === "") {
         // currentBuffer は updateAndDrawScenes() で描画された最新のシーン内容を持つ
         applyDisplacedBlockNoise(currentBuffer); // effects.jsから参照
     }
-    // --- 追加部分ここまで ---
 
     // ログ演出（sceneManagerから現在のシーンを取得して判定）
     if (getCurrentScene() === scene8) { // sceneManager.jsから参照
@@ -45,13 +43,22 @@ function draw() {
         drawLogs(100);
     }
 
-    // フレームレート制御（keyReleased イベントで調整するか、drawで継続的に調整するか）
-    // 現状は keyPressed で行っているので、ここでは特別な処理は不要。
-    // smoothFrameRateChange は keyPressed/keyReleased で呼び出すのがより自然です。
-    // ただし、長押しでフレームレートを変化させたい場合は draw で継続的に smoothFrameRateChange を呼び出すのもありです。
-    // 今回の例では keyPressed で rate が変更され、離されたら draw で smoothFrameRateChange が動くように想定しています。
-    if (!keyIsDown(KEY_EIGHT) && !keyIsDown(KEY_NINE)) {
-        smoothFrameRateChange(DEFAULT_FRAME_RATE, 0.15); // utils.jsから参照
+    if (getInputBuffer() === "") {
+        if (keyIsDown(KEY_EIGHT)) { // '8'キーが押されている間、加速
+            setAppFrameRate(ACCELERATED_FRAME_RATE); // utils.jsから参照
+        }
+        // '9'キーが押されている間、滑らかに減速
+        else if (keyIsDown(KEY_NINE)) {
+            smoothFrameRateChange(DECELERATED_FRAME_RATE, 0.05); // utils.jsから参照
+        }
+        // どちらのキーも押されていない場合、滑らかにデフォルトのフレームレートに戻す
+        else {
+            smoothFrameRateChange(DEFAULT_FRAME_RATE, 0.15); // utils.jsから参照
+        }
+    } else {
+        // inputBuffer が空でない場合は、デフォルトのフレームレートに戻す処理のみ行う
+        // コマンド入力中にフレームレートが勝手に加速・減速しないように
+        smoothFrameRateChange(DEFAULT_FRAME_RATE, 0.15);
     }
 }
 

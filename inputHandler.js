@@ -118,15 +118,6 @@ function handleKeyPressed() {
         tapTimes = []; // タップ履歴をすべて削除
         addLog("BPM tap history cleared.");
     }
-
-    // フレームレート制御
-    if (keyCode === KEY_EIGHT) {
-        setAppFrameRate(ACCELERATED_FRAME_RATE); // utils.jsから参照
-    } else if (keyCode === KEY_NINE) {
-        smoothFrameRateChange(DECELERATED_FRAME_RATE, 0.05); // utils.jsから参照
-    } else {
-        smoothFrameRateChange(DEFAULT_FRAME_RATE, 0.15); // utils.jsから参照
-    }
 }
 
 function parseCommand(command) {

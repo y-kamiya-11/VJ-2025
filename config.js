@@ -7,7 +7,7 @@ const OVERLAY_DURATION = 5000; // ミリ秒
 const SHAPE_OVERLAY_LIFE_SPAN = 50; // フレーム数
 const DEFAULT_FRAME_RATE = 60;
 const ACCELERATED_FRAME_RATE = 120;
-const DECELERATED_FRAME_RATE = 24;
+const DECELERATED_FRAME_RATE = 10;
 
 // キーコードの定数
 const KEY_ONE = 49;
