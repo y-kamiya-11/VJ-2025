@@ -8,11 +8,20 @@ let overlayActiveTime = [0, 0, 0];
 
 let shapeOverlays = [];
 
+let blockNoiseBuffer;
+let tempDisplacedGraphics; // ずらしたシーンを描画するための一時バッファ
+let tempOriginalGraphics;  // 元のシーンを描画するための一時バッファ
+let inverseMaskGraphics;   // 逆マスクを生成するための一時バッファ
+
 function initializeEffects() {
     glowBuffer = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
     overlayBuffer1 = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
     overlayBuffer2 = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
     overlayBuffer3 = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+    blockNoiseBuffer = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+    tempDisplacedGraphics = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+    tempOriginalGraphics = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+    inverseMaskGraphics = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 
 function applyBlinkEffect(keyCode, inputBuffer) {
@@ -155,4 +164,72 @@ function drawShapeOverlays() {
             shapeOverlays.splice(i, 1);
         }
     }
+}
+
+/**
+ * ランダムな白い長方形を blockNoiseBuffer に描画する。
+ * @param {boolean} isMaskMode - Vキーモード (マスクとして使用) の場合 true。
+ * このモードでは、マスクとして利用するため描画は行わない。
+ */
+function generateBlockNoise(isMaskMode = false) {
+    blockNoiseBuffer.clear();
+    blockNoiseBuffer.noStroke();
+    blockNoiseBuffer.fill(255); // 白いブロックノイズ
+
+    for (let i = 0; i < BLOCK_NOISE_RECT_COUNT; i++) {
+        let x = random(CANVAS_WIDTH);
+        let y = random(CANVAS_HEIGHT);
+        let biasedRandom = pow(random(1), BLOCK_NOISE_SIZE_BIAS_POWER);
+        let w = map(biasedRandom, 0, 1, BLOCK_NOISE_RECT_SIZE_MIN, BLOCK_NOISE_RECT_SIZE_MAX*2);
+        biasedRandom = pow(random(1), BLOCK_NOISE_SIZE_BIAS_POWER);
+        let h = map(biasedRandom, 0, 1, BLOCK_NOISE_RECT_SIZE_MIN, BLOCK_NOISE_RECT_SIZE_MAX*0.4);
+        blockNoiseBuffer.rect(x, y, w, h);
+    }
+
+    if (!isMaskMode) {
+        // Cキーモードの場合のみ、バッファを直接描画
+        tint(255, 100); // 例: アルファ値を100に設定 (0-255の範囲で調整可能)
+        image(blockNoiseBuffer, 0, 0);
+        noTint();
+    }
+}
+
+/**
+ * Vキーモードでの描画処理。
+ * blockNoiseBuffer をマスクとして使用し、sceneBuffer の内容を部分的にずらして描画する。
+ * @param {p5.Graphics} sceneBuffer - 現在のシーンが描画されているバッファ
+ */
+function applyDisplacedBlockNoise(sceneBuffer) {
+    // 1. ブロックノイズのマスク画像を生成
+    generateBlockNoise(true); // blockNoiseBuffer に白い長方形を描画（描画はしない）
+    let noiseMaskImage = blockNoiseBuffer.get(); // p5.Graphics の内容を p5.Image として取得
+
+    // 2. ずらした部分の画像と元の部分の画像を一時バッファに描画
+    // tempDisplacedGraphics の内容をクリアし、sceneBufferの内容をずらして描画
+    tempDisplacedGraphics.clear();
+    tempDisplacedGraphics.image(sceneBuffer, BLOCK_NOISE_DISPLACEMENT, 0); 
+    let displacedImageForMask = tempDisplacedGraphics.get(); // p5.Image として取得
+
+    // tempOriginalGraphics の内容をクリアし、sceneBufferの内容をそのまま描画
+    tempOriginalGraphics.clear();
+    tempOriginalGraphics.image(sceneBuffer, 0, 0);
+    let originalImageForMask = tempOriginalGraphics.get(); // p5.Image として取得
+
+    // 3. マスクを適用して合成
+    displacedImageForMask.mask(noiseMaskImage);
+
+    // 逆マスクを生成 (inverseMaskGraphics を利用)
+    inverseMaskGraphics.clear();
+    inverseMaskGraphics.background(255); // 全体を白で埋める
+    // blockNoiseBuffer の内容を inverseMaskGraphics に直接描画し、INVERT モードを適用
+    inverseMaskGraphics.image(blockNoiseBuffer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, INVERT);
+    let inverseNoiseMaskImage = inverseMaskGraphics.get();
+
+    originalImageForMask.mask(inverseNoiseMaskImage);
+    
+    // 4. 最終的な結果をメインキャンバスに描画
+    image(originalImageForMask, 0, 0);
+    image(displacedImageForMask, 0, 0);
+
+    // p5.Image オブジェクトはガベージコレクションに任せる
 }

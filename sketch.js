@@ -18,13 +18,6 @@ function draw() {
     // シーンの更新と描画
     updateAndDrawScenes(); // sceneManager.jsから参照
 
-    // ログ演出（sceneManagerから現在のシーンを取得して判定）
-    if (getCurrentScene() === scene8) { // sceneManager.jsから参照
-        drawLogs(255); // utils.jsから参照
-    } else {
-        drawLogs(100);
-    }
-
     // エフェクトの適用
     applyBlinkEffect(KEY_ONE, getInputBuffer()); // effects.js, inputHandler.jsから参照
     applyBlinkEffect(KEY_TWO, getInputBuffer());
@@ -35,6 +28,22 @@ function draw() {
 
     // シェイプオーバーレイの描画と更新
     drawShapeOverlays(); // effects.jsから参照
+
+    // --- 追加部分: CキーとVキーのブロックノイズ描画 ---
+    if (keyIsDown(KEY_C) && getInputBuffer() === "") {
+        generateBlockNoise(); // effects.jsから参照
+    } else if (keyIsDown(KEY_V) && getInputBuffer() === "") {
+        // currentBuffer は updateAndDrawScenes() で描画された最新のシーン内容を持つ
+        applyDisplacedBlockNoise(currentBuffer); // effects.jsから参照
+    }
+    // --- 追加部分ここまで ---
+
+    // ログ演出（sceneManagerから現在のシーンを取得して判定）
+    if (getCurrentScene() === scene8) { // sceneManager.jsから参照
+        drawLogs(255); // utils.jsから参照
+    } else {
+        drawLogs(100);
+    }
 
     // フレームレート制御（keyReleased イベントで調整するか、drawで継続的に調整するか）
     // 現状は keyPressed で行っているので、ここでは特別な処理は不要。
