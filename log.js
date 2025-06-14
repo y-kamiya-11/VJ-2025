@@ -9,7 +9,7 @@ function addLog(message) {
 
 function drawLogs(alpha=100) {
   let now = millis();
-  let displayDuration = 10000;
+  let displayDuration = 5000;
   let fadeDuration = 3000;
   let lineHeight = 50;
   let y = height - 10;
