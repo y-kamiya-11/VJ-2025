@@ -49,7 +49,7 @@ const BLOCK_NOISE_DISPLACEMENT = 50; // Vキーでずらすピクセル数
 const BLOCK_NOISE_SIZE_BIAS_POWER = 2.0; // 1を境に大きいほど大きい値、小さいほど小さい値が出やすくなる
 
 // 初期シーンの設定
-let initialScene = scene6;
+let initialScene = scene1;
 
 // シーンオブジェクトのマッピング
 const scenes = {
@@ -61,4 +61,8 @@ const scenes = {
     '6': scene6,
     '7': scene7,
     '8': scene8,
+    '9': scene9,
+    '10': scene10,
+    '11': scene11, 
+    '12': scene12
 };
