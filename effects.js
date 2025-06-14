@@ -209,17 +209,25 @@ function triggerOverlay(index) {
   }
 }
 
+function getThirtySecondNoteDuration(currentBPM, frameRate = 60) {
+  if (currentBPM <= 0) return 1; // BPMが0以下の場合は最低1フレーム確保
+  const secondsPerBeat = 60 / currentBPM; // 1拍あたりの秒数
+  const secondsPerThirtySecondNote = secondsPerBeat / 8; // 1拍は8つの32分音符に相当
+  return Math.max(1, Math.round(secondsPerThirtySecondNote * frameRate)); // フレーム数に変換し、最低1フレームは確保
+}
+
 function addShapeOverlay(type) {
+  // ここで現在のbpmの値を参照して、その時点でのlifeSpanを計算する
+  const currentLifeSpan = getThirtySecondNoteDuration(bpm);
+
   shapeOverlays.push({
     type: type,
-    x: random(width),
-    y: random(height),
-    size: random(50, 150),
-    rotation: random(TWO_PI),
-    initialRotationSpeed: random(-0.1, 0.1),
-    alpha: 255,
+    x: width / 2, // 画面中央に配置
+    y: height / 2, // 画面中央に配置
+    size: Math.min(width, height) * 0.7, // 画面サイズに応じて非常に大きくする (例: 短い方の70%)
+    alpha: 255, // フェードアウト無効のため常に255
     elapsedTime: 0,
-    lifeSpan: SHAPE_OVERLAY_LIFE_SPAN // config.jsから参照
+    lifeSpan: currentLifeSpan // 図形が生成された時点のBPMで計算された生存時間
   });
 }
 
@@ -228,30 +236,37 @@ function drawShapeOverlays() {
     let s = shapeOverlays[i];
     push();
     translate(s.x, s.y);
-    let easedRotationFactor = 1 - easeOut(s.elapsedTime, s.lifeSpan, 6); // utils.jsから参照
-    s.rotation += s.initialRotationSpeed * easedRotationFactor;
 
     s.elapsedTime++;
-    rotate(s.rotation);
+
+    strokeCap(SQUARE);
     noFill();
     stroke(255, s.alpha);
-    strokeWeight(2);
+    strokeWeight(150); // 線を非常に太くする (例: 10) - 適宜調整してください
+
+    blendMode(DIFFERENCE);
 
     if (s.type === 'rect') {
       rectMode(CENTER);
       rect(0, 0, s.size, s.size);
-    } else if (s.type === 'tri') {
-      triangle(0, -s.size / 2, -s.size / 2, s.size / 2, s.size / 2, s.size / 2);
+    } else if (s.type === 'diamond') {
+      push();
+      rotate(PI / 4); // 45度回転
+      rectMode(CENTER);
+      rect(0, 0, s.size, s.size);
+      pop();
     } else if (s.type === 'circle') {
       ellipse(0, 0, s.size, s.size);
     } else if (s.type === 'cross') {
       line(-s.size / 2, -s.size / 2, s.size / 2, s.size / 2);
       line(s.size / 2, -s.size / 2, -s.size / 2, s.size / 2);
     }
+
+    blendMode(BLEND);
     pop();
 
-    s.alpha -= 5;
-    if (s.alpha <= 0) {
+    // lifeSpan が経過したら削除
+    if (s.elapsedTime >= s.lifeSpan) {
       shapeOverlays.splice(i, 1);
     }
   }

@@ -88,7 +88,7 @@ function handleKeyPressed() {
         addShapeOverlay('rect'); // effects.jsから参照
     }
     if (keyCode === KEY_F) {
-        addShapeOverlay('tri');
+        addShapeOverlay('diamond');
     }
     if (keyCode === KEY_J) {
         addShapeOverlay('circle');
