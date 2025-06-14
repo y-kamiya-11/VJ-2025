@@ -4,10 +4,11 @@ let inputBuffer = "";
 let intensity = 0; // 初期値をここに定義するか、config.jsに移動
 let bpm = 120; // 初期BPM
 let tapTimes = []; // Mキーが押されたタイムスタンプを保持する配列 (ミリ秒)
+let isZeroKeyPressed = false;
 
 // 効果キーのリスト
 const EFFECT_KEYS = [
-    KEY_SPACE, KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR, KEY_FIVE, KEY_SIX,
+    KEY_SPACE, KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR, KEY_FIVE, KEY_SIX, KEY_ZERO,
     KEY_SEVEN, KEY_EIGHT, KEY_NINE, KEY_D, KEY_F, KEY_J, KEY_K, KEY_M, KEY_N, KEY_C, KEY_V
 ]; // config.jsで定義した定数を参照
 
@@ -73,6 +74,11 @@ function handleKeyPressed() {
     }
     if (keyCode === KEY_SIX) {
         triggerOverlay(2);
+    }
+
+    if (keyCode === KEY_ZERO && !isZeroKeyPressed) {
+        isZeroKeyPressed = true;
+        fadeStartTime = millis(); // フェードアウト開始時刻を記録
     }
 
     // シェイプオーバーレイのトリガー

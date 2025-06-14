@@ -19,6 +19,7 @@ const KEY_SIX = 54;
 const KEY_SEVEN = 55;
 const KEY_EIGHT = 56;
 const KEY_NINE = 57;
+const KEY_ZERO = 48;
 const KEY_D = 68;
 const KEY_F = 70;
 const KEY_J = 74;

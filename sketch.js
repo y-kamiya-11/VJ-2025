@@ -1,6 +1,8 @@
 // main.js
 
 let customFont;
+let fadeStartTime = 0;
+const FADE_OUT_DURATION = 500; // 1秒
 
 function preload() {
     customFont = loadFont('assets/fonts/BestTen-CRT.otf');
@@ -15,6 +17,7 @@ function setup() {
 }
 
 function draw() {
+    
     // シーンの更新と描画
     updateAndDrawScenes(); // sceneManager.jsから参照
 
@@ -36,8 +39,6 @@ function draw() {
         applyDisplacedBlockNoise(currentBuffer); // effects.jsから参照
     }
 
-    drawLogs();
-
     if (getInputBuffer() === "") {
         if (keyIsDown(KEY_EIGHT)) { // '8'キーが押されている間、加速
             setAppFrameRate(ACCELERATED_FRAME_RATE); // utils.jsから参照
@@ -55,6 +56,19 @@ function draw() {
         // コマンド入力中にフレームレートが勝手に加速・減速しないように
         smoothFrameRateChange(DEFAULT_FRAME_RATE, 0.15);
     }
+
+        if (isZeroKeyPressed) {
+        let elapsedTime = millis() - fadeStartTime;
+        // 経過時間に応じてアルファ値を0から255にマッピング
+        let alphaValue = map(elapsedTime, 0, FADE_OUT_DURATION, 0, 255);
+        alphaValue = constrain(alphaValue, 0, 255); // 0から255の範囲に制限
+
+        noStroke(); // 四角形の枠線なし
+        fill(0, alphaValue); // 黒色でアルファ値を設定
+        rect(0, 0, width, height); // 画面全体に四角形を描画
+    }
+    
+    drawLogs();
 }
 
 // イベントリスナーは inputHandler.js に移譲
@@ -64,4 +78,12 @@ function keyTyped() {
 
 function keyPressed() {
     handleKeyPressed(); // inputHandler.jsから参照
+}
+
+function keyReleased() {
+    // 0キーが離されたときの処理
+    if (keyCode === KEY_ZERO) {
+        isZeroKeyPressed = false;
+        // 離されたら即座に再描画（黒いrectが描画されなくなる）
+    }
 }
