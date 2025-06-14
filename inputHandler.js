@@ -121,7 +121,7 @@ function handleKeyPressed() {
 }
 
 function parseCommand(command) {
-    if (command.startsWith("scene=")) {
+    if (command.startsWith("s=")) {
         let sceneNum = command.split("=")[1];
         if (scenes[sceneNum]) { // config.jsから参照
             switchScene(scenes[sceneNum]); // sceneManager.jsから参照

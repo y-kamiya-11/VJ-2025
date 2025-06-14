@@ -1,7 +1,7 @@
 let scene5 = {
   settings: {
     backgroundColor: null,
-    curveCount: 20,     // 1フレームあたりの曲線の本数
+    curveCount: 10,     // 1フレームあたりの曲線の本数
     maxPoints: 6,        // 1本の曲線の最大頂点数
     maxLength: 400,      // 制御点の最大移動量
     maxWeight: 4,        // 曲線の最大太さ（増やした）
