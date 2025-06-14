@@ -111,6 +111,7 @@ let scene12 = {
 
   // drawSceneにはp5.Graphicsインスタンス `g` が渡されることを想定
   drawScene(g) {
+    g.rectMode(g.CORNER);
     g.background(this.settings.backgroundColor); // g.backgroundはp5.Graphicsのメソッド
     g.noStroke(); // g.noStrokeはp5.Graphicsのメソッド
 
