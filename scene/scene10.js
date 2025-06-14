@@ -1,4 +1,4 @@
-let scene6 = {
+let scene10 = {
   settings: {
     pointCount: 250,
     fillRatio: 0.03,
