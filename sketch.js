@@ -36,12 +36,7 @@ function draw() {
         applyDisplacedBlockNoise(currentBuffer); // effects.jsから参照
     }
 
-    // ログ演出（sceneManagerから現在のシーンを取得して判定）
-    if (getCurrentScene() === scene8) { // sceneManager.jsから参照
-        drawLogs(255); // utils.jsから参照
-    } else {
-        drawLogs(100);
-    }
+    drawLogs();
 
     if (getInputBuffer() === "") {
         if (keyIsDown(KEY_EIGHT)) { // '8'キーが押されている間、加速

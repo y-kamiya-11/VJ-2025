@@ -1,4 +1,5 @@
 let logMessages = [];
+let logAlpha = 100;
 
 function addLog(message) {
   logMessages.push({
@@ -7,7 +8,7 @@ function addLog(message) {
   });
 }
 
-function drawLogs(alpha=100) {
+function drawLogs() {
   let now = millis();
   let displayDuration = 5000;
   let fadeDuration = 3000;
@@ -26,7 +27,7 @@ function drawLogs(alpha=100) {
   let textCol = (brightnessValue > 50) ? color(0) : color(255);
 
   // 入力中の文字列を一番下に描画
-  textCol.setAlpha(alpha);
+  textCol.setAlpha(logAlpha);
   fill(textCol);
   text(getInputBuffer(), 10, y);
   y -= lineHeight;
@@ -44,7 +45,7 @@ function drawLogs(alpha=100) {
       }
     }
 
-    textCol.setAlpha(alpha);
+    textCol.setAlpha(logAlpha);
     fill(textCol);
     text(msg.text, 10, y);
     y -= lineHeight;

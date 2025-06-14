@@ -16,18 +16,35 @@ function initializeSceneManager() {
     currentScene.setupScene(currentBuffer);
 }
 
+let transitionStarted = false; // トランジションが開始されたかどうかのフラグ
+
 function updateAndDrawScenes() {
     if (currentScene !== targetScene || alpha <= 50) {
+        // ここがトランジション中
+        if (currentScene !== targetScene && !transitionStarted) {
+            // トランジションの最初のフレーム
+            if (currentScene === scene8) { // currentSceneがscene8の場合に限定
+                logAlpha = 100;
+            }
+            if (targetScene === scene8) { // currentSceneがscene8の場合に限定
+                logAlpha = 255;
+            }
+            transitionStarted = true; // フラグを立てて、次フレーム以降は実行しないようにする
+        }
+
         alpha -= transitionSpeed;
 
         if (alpha <= 0) {
             currentScene = targetScene;
-            targetScene.drawScene(targetBuffer);
-            currentScene.drawScene(currentBuffer);
-            image(targetBuffer, 0, 0);
+            currentScene.drawScene(currentBuffer); // currentBufferに描画
+            targetScene.drawScene(targetBuffer); // targetBufferに描画
+            image(targetBuffer, 0, 0); // targetBufferを表示
 
             if (alpha <= -100) {
                 alpha = 255;
+
+                // 新しいシーンに切り替わったので、トランジションフラグをリセット
+                transitionStarted = false; 
             }
         } else {
             currentScene.drawScene(currentBuffer);
@@ -39,11 +56,14 @@ function updateAndDrawScenes() {
             noTint();
         }
     } else {
+        // シーンが安定して表示されている状態
         currentScene.drawScene(currentBuffer);
         image(currentBuffer, 0, 0);
+        
+        // シーンが安定しているので、トランジションフラグをリセットしておく（念のため）
+        transitionStarted = false;
     }
 }
-
 function switchScene(sceneObject) {
     if (targetScene !== sceneObject) {
         targetScene = sceneObject;
