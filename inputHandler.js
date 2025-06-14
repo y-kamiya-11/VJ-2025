@@ -1,7 +1,7 @@
 // inputHandler.js
 
 let inputBuffer = "";
-let intensity = 50; // 初期値をここに定義するか、config.jsに移動
+let intensity = 0; // 初期値をここに定義するか、config.jsに移動
 let bpm = 120; // 初期BPM
 let tapTimes = []; // Mキーが押されたタイムスタンプを保持する配列 (ミリ秒)
 
@@ -47,7 +47,7 @@ function handleKeyPressed() {
     }
 
     if (keyCode === KEY_UP_ARROW) {
-        intensity = min(intensity + 5, 100);
+        intensity = min(intensity + 5, 150);
         addLog("intensity: " + intensity);
     }
     if (keyCode === KEY_DOWN_ARROW) {

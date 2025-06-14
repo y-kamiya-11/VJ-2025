@@ -1,11 +1,17 @@
 let logMessages = [];
 let logAlpha = 100;
+const MAX_LOG_DISPLAY_COUNT = 24;
 
 function addLog(message) {
   logMessages.push({
     text: message,
     createdAt: millis()
   });
+
+  // ログメッセージが最大表示数を超えたら、古いものから削除
+  if (logMessages.length > MAX_LOG_DISPLAY_COUNT) {
+    logMessages.shift(); // 配列の先頭から要素を削除
+  }
 }
 
 function drawLogs() {
