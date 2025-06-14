@@ -61,51 +61,61 @@ function triggerGlow() {
   glowAlpha = 180;
 }
 
-// オーバーレイ描画関数 (仮の関数名。実際のオーバーレイ描画関数に置き換える)
-// これらの関数は、具体的な描画ロジックを持つため、本来は独立したファイルに置くべきですが、
-// ここでは簡易的に effects.js に含めます。
 function overlay1(buffer) {
   buffer.clear();
-  buffer.noFill();
-  buffer.strokeWeight(2);
-  buffer.stroke(0, 255, 0); // 緑色
+  buffer.noStroke();
 
-  const arrowWidth = 50;
-  const arrowHeight = 50;
-  const arrowSpacing = 100;
+  const segmentWidth = 170; // 矢印の各セグメントの横幅
+  const segmentHeight = 300; // 矢印の各セグメントの縦の振幅
+  const arrowSpacing = 440; // 矢印間の間隔
   const arrowCount = 3;
-  const startX = -arrowWidth; // 左端から登場させるため
-  const endX = buffer.width + arrowWidth; // 右端まで移動させるため
+  const totalArrowWidth = segmentWidth * 2; // 1つの矢印の総幅
+
+  // アニメーションの開始と終了位置を調整
+  const startX = -totalArrowWidth * 1.5 - buffer.width + 800; // 左端から完全に消えた状態から開始
+  const endX = buffer.width + totalArrowWidth * 1.5; // 右端まで完全に消えるように移動
   const centerY = buffer.height / 2;
-  const animationDuration = 2000; // アニメーションの総時間 (ミリ秒)
+  const animationDuration = 700; // アニメーションの総時間 (ミリ秒)
 
   let currentTime = millis() - overlayActiveTime[0]; // overlay1が開始されてからの時間
-  let normalizedTime = constrain(currentTime / animationDuration, 0, 1); // 0-1の範囲に正規化
 
   for (let i = 0; i < arrowCount; i++) {
-    let arrowX = map(normalizedTime, 0, 1, startX + i * arrowSpacing, endX + i * arrowSpacing);
-    let arrowY = centerY;
-    let alpha;
-
-    if (arrowX < 0) {
-        alpha = map(arrowX, -arrowWidth, 0, 0, 255);
-    } else if (arrowX > buffer.width) {
-        alpha = map(arrowX, buffer.width, buffer.width + arrowWidth, 255, 0);
+    let arrowOffsetX;
+    if (currentTime + 20 * i <= animationDuration / 2) {
+        arrowOffsetX = startX + (endX - startX) * easeIn(currentTime + 20 * i, animationDuration / 2, 3) / 2;
     } else {
-        alpha = 255;
+        arrowOffsetX = startX + (endX - startX) / 2 + (endX - startX) * easeOut(currentTime + 20 * i - (animationDuration / 2), animationDuration / 2, 3) / 2;
     }
+    let currentArrowX = arrowOffsetX + i * arrowSpacing; // 各矢印の基準X座標
 
+    let alpha = 255;
     alpha = constrain(alpha, 0, 255);
 
     buffer.push();
-    buffer.translate(arrowX, arrowY);
-    buffer.rotate(-PI / 4); // "く"の字の角度を調整
-    buffer.stroke(0, 255, 0, alpha); // 透明度を適用
+    buffer.translate(currentArrowX, centerY);
+    buffer.fill(255, 255, 255, alpha);
+    
+    buffer.blendMode(DIFFERENCE);
+
+    // 画像の形状を描画するための頂点定義
     buffer.beginShape();
+    // 左上の頂点
+    buffer.vertex(-segmentWidth, -segmentHeight);
+    // 中央の尖った左側（くの字の折れ目）
     buffer.vertex(0, 0);
-    buffer.vertex(0, arrowHeight / 2);
-    buffer.vertex(arrowWidth / 2, arrowHeight / 2);
-    buffer.endShape();
+    // 左下の頂点
+    buffer.vertex(-segmentWidth, segmentHeight);
+    // 右下の頂点
+    buffer.vertex(segmentWidth, segmentHeight);
+    // 右中央の尖った部分
+    buffer.vertex(totalArrowWidth, 0); // 1つの矢印の右端
+    // 右上の頂点
+    buffer.vertex(segmentWidth, -segmentHeight);
+    // 中央の尖った右側（くの字の折れ目）
+    buffer.vertex(-segmentWidth, -segmentHeight); // 中央の尖った部分に戻る
+    buffer.endShape(CLOSE); // 形状を閉じる
+
+    buffer.blendMode(BLEND);
     buffer.pop();
   }
 }
@@ -191,7 +201,9 @@ function overlay3(buffer) {
 function drawOverlays() {
   if (overlayActiveTime[0] > 0 && millis() - overlayActiveTime[0] < OVERLAY_DURATION) {
     overlay1(overlayBuffer1);
+    blendMode(DIFFERENCE);
     image(overlayBuffer1, 0, 0);
+    blendMode(BLEND);
   }
   if (overlayActiveTime[1] > 0 && millis() - overlayActiveTime[1] < OVERLAY_DURATION) {
     overlay2(overlayBuffer2);
