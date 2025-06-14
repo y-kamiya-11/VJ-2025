@@ -14,150 +14,187 @@ let tempOriginalGraphics;  // 元のシーンを描画するための一時バ�
 let inverseMaskGraphics;   // 逆マスクを生成するための一時バッファ
 
 function initializeEffects() {
-    glowBuffer = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
-    overlayBuffer1 = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
-    overlayBuffer2 = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
-    overlayBuffer3 = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
-    blockNoiseBuffer = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
-    tempDisplacedGraphics = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
-    tempOriginalGraphics = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
-    inverseMaskGraphics = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+  glowBuffer = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+  overlayBuffer1 = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+  overlayBuffer2 = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+  overlayBuffer3 = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+  blockNoiseBuffer = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+  tempDisplacedGraphics = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+  tempOriginalGraphics = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+  inverseMaskGraphics = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 
 function applyBlinkEffect(keyCode, inputBuffer) {
-    if (keyIsDown(keyCode) && inputBuffer === "") {
-        let blinkAlpha;
-        if (keyCode === KEY_ONE) {
-            blinkAlpha = map(sin(millis() * 0.1) * 3, -1, 1, 0, 90);
-            fill(255, blinkAlpha);
-        } else if (keyCode === KEY_TWO) {
-            blinkAlpha = map(sin(millis() * 0.1) * 5 + 3, -1, 1, 0, 255);
-            fill(0, blinkAlpha);
-        }
-        noStroke();
-        rect(0, 0, width, height);
+  if (keyIsDown(keyCode) && inputBuffer === "") {
+    let blinkAlpha;
+    if (keyCode === KEY_ONE) {
+      blinkAlpha = map(sin(millis() * 0.1) * 3, -1, 1, 0, 90);
+      fill(255, blinkAlpha);
+    } else if (keyCode === KEY_TWO) {
+      blinkAlpha = map(sin(millis() * 0.1) * 5 + 3, -1, 1, 0, 255);
+      fill(0, blinkAlpha);
     }
+    noStroke();
+    rect(0, 0, width, height);
+  }
 }
 
 function applyGlowEffect(currentBuffer, inputBuffer) {
-    if (glowAlpha > 0 && inputBuffer === "") {
-        glowBuffer.image(currentBuffer, 0, 0);
+  if (glowAlpha > 0 && inputBuffer === "") {
+    glowBuffer.image(currentBuffer, 0, 0);
 
-        blendMode(ADD);
-        tint(255, glowAlpha);
-        glowBuffer.filter(BLUR, 8);
-        image(glowBuffer, 0, 0);
-        glowBuffer.filter(BLUR, 32);
-        image(glowBuffer, 0, 0);
-        noTint();
-        blendMode(BLEND);
+    blendMode(ADD);
+    tint(255, glowAlpha);
+    glowBuffer.filter(BLUR, 8);
+    image(glowBuffer, 0, 0);
+    glowBuffer.filter(BLUR, 32);
+    image(glowBuffer, 0, 0);
+    noTint();
+    blendMode(BLEND);
 
-        glowAlpha -= GLOW_DECAY_SPEED; // config.jsから参照
-        glowAlpha = max(glowAlpha, 0);
-    }
+    glowAlpha -= GLOW_DECAY_SPEED; // config.jsから参照
+    glowAlpha = max(glowAlpha, 0);
+  }
 }
 
 function triggerGlow() {
-    glowAlpha = 180;
+  glowAlpha = 180;
 }
 
 // オーバーレイ描画関数 (仮の関数名。実際のオーバーレイ描画関数に置き換える)
 // これらの関数は、具体的な描画ロジックを持つため、本来は独立したファイルに置くべきですが、
 // ここでは簡易的に effects.js に含めます。
 function overlay1(buffer) {
-    buffer.clear();
-    buffer.background(255, 50);
-    buffer.fill(0);
-    buffer.textSize(50);
-    buffer.textAlign(CENTER, CENTER);
-    buffer.text("OVERLAY 1 ACTIVE", buffer.width / 2, buffer.height / 2);
+  buffer.clear();
+  buffer.noFill();
+  buffer.strokeWeight(2);
+  buffer.stroke(0, 255, 0); // 緑色
+
+  const arrowWidth = 50;
+  const arrowHeight = 50;
+  const arrowSpacing = 100;
+  const arrowCount = 3;
+  const startX = -arrowWidth; // 左端から登場させるため
+  const endX = buffer.width + arrowWidth; // 右端まで移動させるため
+  const centerY = buffer.height / 2;
+  const animationDuration = 2000; // アニメーションの総時間 (ミリ秒)
+
+  let currentTime = millis() - overlayActiveTime[0]; // overlay1が開始されてからの時間
+  let normalizedTime = constrain(currentTime / animationDuration, 0, 1); // 0-1の範囲に正規化
+
+  for (let i = 0; i < arrowCount; i++) {
+    let arrowX = map(normalizedTime, 0, 1, startX + i * arrowSpacing, endX + i * arrowSpacing);
+    let arrowY = centerY;
+    let alpha;
+
+    if (arrowX < 0) {
+        alpha = map(arrowX, -arrowWidth, 0, 0, 255);
+    } else if (arrowX > buffer.width) {
+        alpha = map(arrowX, buffer.width, buffer.width + arrowWidth, 255, 0);
+    } else {
+        alpha = 255;
+    }
+
+    alpha = constrain(alpha, 0, 255);
+
+    buffer.push();
+    buffer.translate(arrowX, arrowY);
+    buffer.rotate(-PI / 4); // "く"の字の角度を調整
+    buffer.stroke(0, 255, 0, alpha); // 透明度を適用
+    buffer.beginShape();
+    buffer.vertex(0, 0);
+    buffer.vertex(0, arrowHeight / 2);
+    buffer.vertex(arrowWidth / 2, arrowHeight / 2);
+    buffer.endShape();
+    buffer.pop();
+  }
 }
 
 function overlay2(buffer) {
-    buffer.clear();
-    buffer.background(0, 50);
-    buffer.fill(255);
-    buffer.textSize(50);
-    buffer.textAlign(CENTER, CENTER);
-    buffer.text("OVERLAY 2 ACTIVE", buffer.width / 2, buffer.height / 2);
+  buffer.clear();
+  buffer.background(0, 50);
+  buffer.fill(255);
+  buffer.textSize(50);
+  buffer.textAlign(CENTER, CENTER);
+  buffer.text("OVERLAY 2 ACTIVE", buffer.width / 2, buffer.height / 2);
 }
 
 function overlay3(buffer) {
-    buffer.clear();
-    buffer.background(255, 0, 0, 50);
-    buffer.fill(255);
-    buffer.textSize(50);
-    buffer.textAlign(CENTER, CENTER);
-    buffer.text("OVERLAY 3 ACTIVE", buffer.width / 2, buffer.height / 2);
+  buffer.clear();
+  buffer.background(255, 0, 0, 50);
+  buffer.fill(255);
+  buffer.textSize(50);
+  buffer.textAlign(CENTER, CENTER);
+  buffer.text("OVERLAY 3 ACTIVE", buffer.width / 2, buffer.height / 2);
 }
 
 function drawOverlays() {
-    if (overlayActiveTime[0] > 0 && millis() - overlayActiveTime[0] < OVERLAY_DURATION) {
-        overlay1(overlayBuffer1);
-        image(overlayBuffer1, 0, 0);
-    }
-    if (overlayActiveTime[1] > 0 && millis() - overlayActiveTime[1] < OVERLAY_DURATION) {
-        overlay2(overlayBuffer2);
-        image(overlayBuffer2, 0, 0);
-    }
-    if (overlayActiveTime[2] > 0 && millis() - overlayActiveTime[2] < OVERLAY_DURATION) {
-        overlay3(overlayBuffer3);
-        image(overlayBuffer3, 0, 0);
-    }
+  if (overlayActiveTime[0] > 0 && millis() - overlayActiveTime[0] < OVERLAY_DURATION) {
+    overlay1(overlayBuffer1);
+    image(overlayBuffer1, 0, 0);
+  }
+  if (overlayActiveTime[1] > 0 && millis() - overlayActiveTime[1] < OVERLAY_DURATION) {
+    overlay2(overlayBuffer2);
+    image(overlayBuffer2, 0, 0);
+  }
+  if (overlayActiveTime[2] > 0 && millis() - overlayActiveTime[2] < OVERLAY_DURATION) {
+    overlay3(overlayBuffer3);
+    image(overlayBuffer3, 0, 0);
+  }
 }
 
 function triggerOverlay(index) {
-    if (index >= 0 && index < overlayActiveTime.length) {
-        overlayActiveTime[index] = millis();
-    }
+  if (index >= 0 && index < overlayActiveTime.length) {
+    overlayActiveTime[index] = millis();
+  }
 }
 
 function addShapeOverlay(type) {
-    shapeOverlays.push({
-        type: type,
-        x: random(width),
-        y: random(height),
-        size: random(50, 150),
-        rotation: random(TWO_PI),
-        initialRotationSpeed: random(-0.1, 0.1),
-        alpha: 255,
-        elapsedTime: 0,
-        lifeSpan: SHAPE_OVERLAY_LIFE_SPAN // config.jsから参照
-    });
+  shapeOverlays.push({
+    type: type,
+    x: random(width),
+    y: random(height),
+    size: random(50, 150),
+    rotation: random(TWO_PI),
+    initialRotationSpeed: random(-0.1, 0.1),
+    alpha: 255,
+    elapsedTime: 0,
+    lifeSpan: SHAPE_OVERLAY_LIFE_SPAN // config.jsから参照
+  });
 }
 
 function drawShapeOverlays() {
-    for (let i = shapeOverlays.length - 1; i >= 0; i--) {
-        let s = shapeOverlays[i];
-        push();
-        translate(s.x, s.y);
-        let easedRotationFactor = 1 - easeOut(s.elapsedTime, s.lifeSpan, 6); // utils.jsから参照
-        s.rotation += s.initialRotationSpeed * easedRotationFactor;
+  for (let i = shapeOverlays.length - 1; i >= 0; i--) {
+    let s = shapeOverlays[i];
+    push();
+    translate(s.x, s.y);
+    let easedRotationFactor = 1 - easeOut(s.elapsedTime, s.lifeSpan, 6); // utils.jsから参照
+    s.rotation += s.initialRotationSpeed * easedRotationFactor;
 
-        s.elapsedTime++;
-        rotate(s.rotation);
-        noFill();
-        stroke(255, s.alpha);
-        strokeWeight(2);
+    s.elapsedTime++;
+    rotate(s.rotation);
+    noFill();
+    stroke(255, s.alpha);
+    strokeWeight(2);
 
-        if (s.type === 'rect') {
-            rectMode(CENTER);
-            rect(0, 0, s.size, s.size);
-        } else if (s.type === 'tri') {
-            triangle(0, -s.size / 2, -s.size / 2, s.size / 2, s.size / 2, s.size / 2);
-        } else if (s.type === 'circle') {
-            ellipse(0, 0, s.size, s.size);
-        } else if (s.type === 'cross') {
-            line(-s.size / 2, -s.size / 2, s.size / 2, s.size / 2);
-            line(s.size / 2, -s.size / 2, -s.size / 2, s.size / 2);
-        }
-        pop();
-
-        s.alpha -= 5;
-        if (s.alpha <= 0) {
-            shapeOverlays.splice(i, 1);
-        }
+    if (s.type === 'rect') {
+      rectMode(CENTER);
+      rect(0, 0, s.size, s.size);
+    } else if (s.type === 'tri') {
+      triangle(0, -s.size / 2, -s.size / 2, s.size / 2, s.size / 2, s.size / 2);
+    } else if (s.type === 'circle') {
+      ellipse(0, 0, s.size, s.size);
+    } else if (s.type === 'cross') {
+      line(-s.size / 2, -s.size / 2, s.size / 2, s.size / 2);
+      line(s.size / 2, -s.size / 2, -s.size / 2, s.size / 2);
     }
+    pop();
+
+    s.alpha -= 5;
+    if (s.alpha <= 0) {
+      shapeOverlays.splice(i, 1);
+    }
+  }
 }
 
 /**
@@ -166,26 +203,26 @@ function drawShapeOverlays() {
  * このモードでは、マスクとして利用するため描画は行わない。
  */
 function generateBlockNoise(isMaskMode = false) {
-    blockNoiseBuffer.clear();
-    blockNoiseBuffer.noStroke();
-    blockNoiseBuffer.fill(255); // 白いブロックノイズ
+  blockNoiseBuffer.clear();
+  blockNoiseBuffer.noStroke();
+  blockNoiseBuffer.fill(255); // 白いブロックノイズ
 
-    for (let i = 0; i < BLOCK_NOISE_RECT_COUNT; i++) {
-        let x = random(CANVAS_WIDTH);
-        let y = random(CANVAS_HEIGHT);
-        let biasedRandom = pow(random(1), BLOCK_NOISE_SIZE_BIAS_POWER);
-        let w = map(biasedRandom, 0, 1, BLOCK_NOISE_RECT_SIZE_MIN, BLOCK_NOISE_RECT_SIZE_MAX*2);
-        biasedRandom = pow(random(1), BLOCK_NOISE_SIZE_BIAS_POWER);
-        let h = map(biasedRandom, 0, 1, BLOCK_NOISE_RECT_SIZE_MIN, BLOCK_NOISE_RECT_SIZE_MAX*0.4);
-        blockNoiseBuffer.rect(x, y, w, h);
-    }
+  for (let i = 0; i < BLOCK_NOISE_RECT_COUNT; i++) {
+    let x = random(CANVAS_WIDTH);
+    let y = random(CANVAS_HEIGHT);
+    let biasedRandom = pow(random(1), BLOCK_NOISE_SIZE_BIAS_POWER);
+    let w = map(biasedRandom, 0, 1, BLOCK_NOISE_RECT_SIZE_MIN, BLOCK_NOISE_RECT_SIZE_MAX*2);
+    biasedRandom = pow(random(1), BLOCK_NOISE_SIZE_BIAS_POWER);
+    let h = map(biasedRandom, 0, 1, BLOCK_NOISE_RECT_SIZE_MIN, BLOCK_NOISE_RECT_SIZE_MAX*0.4);
+    blockNoiseBuffer.rect(x, y, w, h);
+  }
 
-    if (!isMaskMode) {
-        // Cキーモードの場合のみ、バッファを直接描画
-        tint(255, 100); // 例: アルファ値を100に設定 (0-255の範囲で調整可能)
-        image(blockNoiseBuffer, 0, 0);
-        noTint();
-    }
+  if (!isMaskMode) {
+    // Cキーモードの場合のみ、バッファを直接描画
+    tint(255, 100); // 例: アルファ値を100に設定 (0-255の範囲で調整可能)
+    image(blockNoiseBuffer, 0, 0);
+    noTint();
+  }
 }
 
 /**
@@ -194,36 +231,36 @@ function generateBlockNoise(isMaskMode = false) {
  * @param {p5.Graphics} sceneBuffer - 現在のシーンが描画されているバッファ
  */
 function applyDisplacedBlockNoise(sceneBuffer) {
-    // 1. ブロックノイズのマスク画像を生成
-    generateBlockNoise(true); // blockNoiseBuffer に白い長方形を描画（描画はしない）
-    let noiseMaskImage = blockNoiseBuffer.get(); // p5.Graphics の内容を p5.Image として取得
+  // 1. ブロックノイズのマスク画像を生成
+  generateBlockNoise(true); // blockNoiseBuffer に白い長方形を描画（描画はしない）
+  let noiseMaskImage = blockNoiseBuffer.get(); // p5.Graphics の内容を p5.Image として取得
 
-    // 2. ずらした部分の画像と元の部分の画像を一時バッファに描画
-    // tempDisplacedGraphics の内容をクリアし、sceneBufferの内容をずらして描画
-    tempDisplacedGraphics.clear();
-    tempDisplacedGraphics.image(sceneBuffer, BLOCK_NOISE_DISPLACEMENT, 0); 
-    let displacedImageForMask = tempDisplacedGraphics.get(); // p5.Image として取得
+  // 2. ずらした部分の画像と元の部分の画像を一時バッファに描画
+  // tempDisplacedGraphics の内容をクリアし、sceneBufferの内容をずらして描画
+  tempDisplacedGraphics.clear();
+  tempDisplacedGraphics.image(sceneBuffer, BLOCK_NOISE_DISPLACEMENT, 0);
+  let displacedImageForMask = tempDisplacedGraphics.get(); // p5.Image として取得
 
-    // tempOriginalGraphics の内容をクリアし、sceneBufferの内容をそのまま描画
-    tempOriginalGraphics.clear();
-    tempOriginalGraphics.image(sceneBuffer, 0, 0);
-    let originalImageForMask = tempOriginalGraphics.get(); // p5.Image として取得
+  // tempOriginalGraphics の内容をクリアし、sceneBufferの内容をそのまま描画
+  tempOriginalGraphics.clear();
+  tempOriginalGraphics.image(sceneBuffer, 0, 0);
+  let originalImageForMask = tempOriginalGraphics.get(); // p5.Image として取得
 
-    // 3. マスクを適用して合成
-    displacedImageForMask.mask(noiseMaskImage);
+  // 3. マスクを適用して合成
+  displacedImageForMask.mask(noiseMaskImage);
 
-    // 逆マスクを生成 (inverseMaskGraphics を利用)
-    inverseMaskGraphics.clear();
-    inverseMaskGraphics.background(255); // 全体を白で埋める
-    // blockNoiseBuffer の内容を inverseMaskGraphics に直接描画し、INVERT モードを適用
-    inverseMaskGraphics.image(blockNoiseBuffer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, INVERT);
-    let inverseNoiseMaskImage = inverseMaskGraphics.get();
+  // 逆マスクを生成 (inverseMaskGraphics を利用)
+  inverseMaskGraphics.clear();
+  inverseMaskGraphics.background(255); // 全体を白で埋める
+  // blockNoiseBuffer の内容を inverseMaskGraphics に直接描画し、INVERT モードを適用
+  inverseMaskGraphics.image(blockNoiseBuffer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, INVERT);
+  let inverseNoiseMaskImage = inverseMaskGraphics.get();
 
-    originalImageForMask.mask(inverseNoiseMaskImage);
-    
-    // 4. 最終的な結果をメインキャンバスに描画
-    image(originalImageForMask, 0, 0);
-    image(displacedImageForMask, 0, 0);
+  originalImageForMask.mask(inverseNoiseMaskImage);
+  
+  // 4. 最終的な結果をメインキャンバスに描画
+  image(originalImageForMask, 0, 0);
+  image(displacedImageForMask, 0, 0);
 
-    // p5.Image オブジェクトはガベージコレクションに任せる
+  // p5.Image オブジェクトはガベージコレクションに任せる
 }

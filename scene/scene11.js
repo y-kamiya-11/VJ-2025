@@ -1,102 +1,127 @@
 let scene11 = {
   settings: {
-    maxShapes: 100, // 表示する図形の最大数
-    currentScale: 1.0, // 現在のスケール
-    scaleSpeed: 0.0005, // スケールが下がる速度
-    shapes: [], // 図形オブジェクトを格納する配列
     backgroundColor: null,
+    rectangles: [], // 枠線のみの長方形を格納
+    squares: [], // 新しい塗りつぶしの正方形を格納
+    lastThinRectTime: 0, // 最後に細い枠線の長方形が生成された時間
+    lastThickRectTime: 0, // 最後に太い枠線の長方形が生成された時間
+    lastSquareTime: 0, // 最後に正方形が生成された時間
+    oneBarInterval: 0, // 1小節の時間の長さ
+    twoBarInterval: 0, // 2小節の時間の長さ
+    oneBeatInterval: 0, // 1拍の時間の長さ
+    maxBars: 16 // 描画する最大小節数 (16小節に変更)
   },
 
   setupScene(g) {
-    g.colorMode(g.HSB, 360, 100, 100, 100); // HSBモードを使用
-    this.settings.backgroundColor = g.color(220, 30, 10, 50); // 背景は青系のフォカマイユで少し透明度を持たせる
-    // 初期図形をいくつか生成
-    for (let i = 0; i < 10; i++) {
-      this.addRandomShape(g);
-    }
+    this.settings.backgroundColor = g.color(0); // 黒背景
+    // 1小節の時間の長さを計算 (ミリ秒)
+    // 1拍のミリ秒数 = 60000 / bpm
+    // 1小節の拍数を4拍と仮定
+    this.settings.oneBeatInterval = (60000 / bpm); // 1拍の長さ
+    this.settings.oneBarInterval = this.settings.oneBeatInterval * 4; // 1小節の長さ
+    this.settings.twoBarInterval = this.settings.oneBarInterval * 2; // 2小節の長さ
   },
 
   drawScene(g) {
     g.background(this.settings.backgroundColor);
+    g.rectMode(g.CENTER); // 四角形を中央揃えで描画
 
-    // 全体のスケールを徐々に下げる
-    this.settings.currentScale -= this.settings.scaleSpeed;
-    if (this.settings.currentScale < 0.1) { // 最小スケールを設定
-      this.settings.currentScale = 0.1;
+    // === 枠線のみの長方形の生成 ===
+    // 1小節ごとに細い枠線の長方形を追加
+    if (millis() - this.settings.lastThinRectTime > this.settings.oneBarInterval) {
+      this.settings.rectangles.push({
+        type: 'rect',
+        birthTime: millis(), // 生成された時間
+        initialScale: g.width, // 初期スケールは画面幅と同じ
+        strokeWeight: 1 // 細い枠線
+      });
+      this.settings.lastThinRectTime = millis();
     }
 
-    g.push(); // 現在の変換行列を保存
-    g.translate(g.width / 2, g.height / 2); // 原点を中央に移動
-    g.scale(this.settings.currentScale); // 全体をスケール
-
-    // オブジェクトを随時生成
-    if (this.settings.shapes.length < this.settings.maxShapes && g.frameCount % 5 === 0) { // 5フレームごとに新しい図形を生成
-      this.addRandomShape(g);
+    // 2小節ごとに太い枠線の長方形を追加
+    if (millis() - this.settings.lastThickRectTime > this.settings.twoBarInterval) {
+      this.settings.rectangles.push({
+        type: 'rect',
+        birthTime: millis(), // 生成された時間
+        initialScale: g.width, // 初期スケールは画面幅と同じ
+        strokeWeight: 5 // 太い枠線
+      });
+      this.settings.lastThickRectTime = millis();
     }
 
-    // 古い図形を削除（任意、メモリ管理のため）
-    if (this.settings.shapes.length > this.settings.maxShapes) {
-      this.settings.shapes.splice(0, this.settings.shapes.length - this.settings.maxShapes);
+    // === 塗りつぶしの正方形の生成 ===
+    // 1拍ごとに正方形を追加
+    if (millis() - this.settings.lastSquareTime > this.settings.oneBeatInterval) {
+      this.settings.squares.push({
+        type: 'square',
+        birthTime: millis(), // 生成された時間
+        initialScale: g.width / 5, // 初期スケール（画面幅の1/5程度）
+        x: g.random(g.width), // ランダムなX座標
+        y: g.random(g.height), // ランダムなY座標
+        fillColor: g.color(g.random(180, 240), 100, 100) // 水色～青のランダムな色相
+      });
+      this.settings.lastSquareTime = millis();
     }
 
-    // 各図形を描画・アニメーション
-    for (let i = this.settings.shapes.length - 1; i >= 0; i--) {
-      let s = this.settings.shapes[i];
-      g.noStroke();
-      g.fill(s.color);
+    // === 各長方形の描画と更新 ===
+    for (let i = 0; i < this.settings.rectangles.length; i++) {
+      let rect = this.settings.rectangles[i];
+      let elapsedTime = millis() - rect.birthTime; // 生成されてからの経過時間
 
-      // アニメーションを適用
-      s.x += s.vx;
-      s.y += s.vy;
-      s.rotation += s.rotationSpeed;
-      s.size += s.sizeChange;
+      // スケールを計算
+      let currentScale = rect.initialScale / (1 + elapsedTime * 0.005); // 0.005は調整可能な減衰速度の係数
 
-      // 画面外に出たら消去、または跳ね返り
-      if (Math.abs(s.x - 0) > g.width * 1.5 || Math.abs(s.y - 0) > g.height * 1.5 || s.size <= 0) {
-        this.settings.shapes.splice(i, 1); // 画面外に出たら配列から削除
-        this.addRandomShape(g); // 新しい図形を追加して補充
-        continue;
+      // 16小節を超えたものは描画しない
+      if (elapsedTime / this.settings.oneBarInterval > this.settings.maxBars) {
+        continue; // 描画スキップ
       }
 
-
-      g.push();
-      g.translate(s.x - g.width / 2, s.y - g.height / 2); // 各図形を原点からの相対位置に移動
-      g.rotate(s.rotation);
-
-      if (s.type === 'ellipse') {
-        g.ellipse(0, 0, s.size, s.size);
-      } else if (s.type === 'rect') {
-        g.rectMode(g.CENTER);
-        g.rect(0, 0, s.size, s.size);
-      } else if (s.type === 'triangle') {
-        let triSize = s.size / 2;
-        g.triangle(0, -triSize, -triSize * g.sqrt(3) / 2, triSize / 2, triSize * g.sqrt(3) / 2, triSize / 2);
-      }
-      g.pop();
+      g.noFill(); // 塗りなし
+      g.stroke(255); // 白い枠線
+      g.strokeWeight(rect.strokeWeight); // 枠線の太さを設定
+      g.rect(g.width / 2, g.height / 2, currentScale, currentScale);
     }
-    g.pop(); // 変換行列を元に戻す
-  },
 
-  addRandomShape(g) {
-    let type = g.random(['ellipse', 'rect', 'triangle']);
-    let size = g.random(20, 150);
-    // 青系のフォカマイユな配色
-    let hue = g.random(200, 260); // 青系の色相範囲
-    let saturation = g.random(50, 100);
-    let brightness = g.random(70, 100);
-    let alpha = g.random(50, 90); // 少し透明度を持たせる
+    // === 各正方形の描画と更新 ===
+    for (let i = 0; i < this.settings.squares.length; i++) {
+      let square = this.settings.squares[i];
+      let elapsedTime = millis() - square.birthTime; // 生成されてからの経過時間
 
-    this.settings.shapes.push({
-      type: type,
-      x: g.random(-g.width / 2, g.width / 2), // 中央を基準にランダムな位置
-      y: g.random(-g.height / 2, g.height / 2), // 中央を基準にランダムな位置
-      size: size,
-      color: g.color(hue, saturation, brightness, alpha),
-      vx: g.random(-1, 1), // 動きの速さ
-      vy: g.random(-1, 1),
-      rotation: g.random(g.TWO_PI),
-      rotationSpeed: g.random(-0.02, 0.02),
-      sizeChange: g.random(-0.5, 0.5) // サイズの変化
+      // スケールを計算
+      let currentScale = square.initialScale / (1 + elapsedTime * 0.008); // 減衰速度は調整可能（長方形とは別）
+
+      // 画面の中心に向かって移動するベクトルを計算
+      let targetX = g.width / 2;
+      let targetY = g.height / 2;
+      let moveAmount = elapsedTime * 0.0005; // 移動速度を調整する係数
+      
+      // 現在位置から目標位置までの距離に応じた移動
+      let dx = targetX - square.x;
+      let dy = targetY - square.y;
+      
+      // 移動量を制限し、ゆっくりと中心に近づくようにする
+      square.x += dx * 0.02; // 0.02は移動の追従速度（調整可能）
+      square.y += dy * 0.02;
+
+      // 16小節を超えたものは描画しない
+      if (elapsedTime / this.settings.oneBarInterval > this.settings.maxBars) {
+        continue; // 描画スキップ
+      }
+      
+      g.noStroke(); // 枠なし
+      g.fill(square.fillColor); // 塗りつぶし色
+      g.rect(square.x, square.y, currentScale, currentScale);
+    }
+
+    // === 16小節を超えたものをリストから破棄 ===
+    this.settings.rectangles = this.settings.rectangles.filter(rect => {
+      const elapsedTime = millis() - rect.birthTime;
+      return (elapsedTime / this.settings.oneBarInterval) <= this.settings.maxBars;
+    });
+
+    this.settings.squares = this.settings.squares.filter(square => {
+      const elapsedTime = millis() - square.birthTime;
+      return (elapsedTime / this.settings.oneBarInterval) <= this.settings.maxBars;
     });
   }
 };
