@@ -2,7 +2,7 @@
 
 let customFont;
 let fadeStartTime = 0;
-const FADE_OUT_DURATION = 300; // 1秒
+const FADE_OUT_DURATION = 200; // 1秒
 
 function preload() {
     customFont = loadFont('assets/fonts/BestTen-CRT.otf');
@@ -21,9 +21,6 @@ function draw() {
     
     // シーンの更新と描画
     updateAndDrawScenes(); // sceneManager.jsから参照
-
-    // BPMの可視化と拍頭の更新
-    handleBeatVisualization(); // 新しく追加する関数
 
     // エフェクトの適用
     applyBlinkEffect(KEY_ONE, getInputBuffer()); // effects.js, inputHandler.jsから参照
@@ -73,6 +70,9 @@ function draw() {
     }
     
     drawLogs();
+    
+    // BPMの可視化と拍頭の更新
+    handleBeatVisualization(); // 新しく追加する関数
 }
 
 // イベントリスナーは inputHandler.js に移譲
