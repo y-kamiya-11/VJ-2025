@@ -3,13 +3,15 @@
 let inputBuffer = "";
 let intensity = 0; // 初期値をここに定義するか、config.jsに移動
 let bpm = 120; // 初期BPM
+let lastBeatMillis = 0; // 最新の拍頭のmillisを保存する変数
+let currentBeat = 0; // 現在の拍数 (0-3で1,2,3,4拍目を表す)
 let tapTimes = []; // Mキーが押されたタイムスタンプを保持する配列 (ミリ秒)
 let isZeroKeyPressed = false;
 
 // 効果キーのリスト
 const EFFECT_KEYS = [
     KEY_SPACE, KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR, KEY_FIVE, KEY_SIX, KEY_ZERO,
-    KEY_SEVEN, KEY_EIGHT, KEY_NINE, KEY_D, KEY_F, KEY_J, KEY_K, KEY_M, KEY_N, KEY_C, KEY_V
+    KEY_SEVEN, KEY_EIGHT, KEY_NINE, KEY_D, KEY_F, KEY_J, KEY_K, KEY_M, KEY_N, KEY_C, KEY_V, KEY_B
 ]; // config.jsで定義した定数を参照
 
 function handleKeyTyped() {
@@ -96,23 +98,22 @@ function handleKeyPressed() {
     }
 
     if (keyCode === 77) { // 'M'キー
-        // 15秒以上前のタップ履歴を破棄
+        // 既存のMキーのBPM計算ロジック
         const currentTime = millis();
         tapTimes = tapTimes.filter(time => currentTime - time < TAP_HISTORY_DURATION);
-        
+
         tapTimes.push(currentTime);
-        
+
         if (tapTimes.length > 1) {
             let totalInterval = 0;
             for (let i = 1; i < tapTimes.length; i++) {
                 totalInterval += tapTimes[i] - tapTimes[i - 1];
             }
             const averageInterval = totalInterval / (tapTimes.length - 1);
-            
+
             if (averageInterval > 0) {
-                // BPM = 60000ミリ秒 / 平均間隔(ミリ秒)
                 const calculatedBPM = round(60000 / averageInterval);
-                bpm = constrain(calculatedBPM, BPM_MIN, BPM_MAX); // 最小・最大BPMに制約
+                bpm = constrain(calculatedBPM, BPM_MIN, BPM_MAX);
                 addLog("Calculated BPM: " + bpm + " (Taps: " + tapTimes.length + ")");
             }
         } else {
@@ -123,6 +124,13 @@ function handleKeyPressed() {
     if (keyCode === 78) { // 'N'キー
         tapTimes = []; // タップ履歴をすべて削除
         addLog("BPM tap history cleared.");
+    }
+
+    if (keyCode === 66) { // 'B'キー
+        // lastBeatMillis を更新し、currentBeat を強制的に0にする
+        lastBeatMillis = millis();
+        currentBeat = 0; // 1拍目(0)にリセット
+        addLog("Beat reset to 1st beat by B key press.");
     }
 }
 

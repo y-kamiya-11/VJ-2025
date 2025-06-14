@@ -2,7 +2,7 @@
 
 let customFont;
 let fadeStartTime = 0;
-const FADE_OUT_DURATION = 500; // 1秒
+const FADE_OUT_DURATION = 300; // 1秒
 
 function preload() {
     customFont = loadFont('assets/fonts/BestTen-CRT.otf');
@@ -14,12 +14,16 @@ function setup() {
 
     initializeSceneManager(); // sceneManager.jsから参照
     initializeEffects();      // effects.jsから参照
+    lastBeatMillis = millis(); // 初期値を設定
 }
 
 function draw() {
     
     // シーンの更新と描画
     updateAndDrawScenes(); // sceneManager.jsから参照
+
+    // BPMの可視化と拍頭の更新
+    handleBeatVisualization(); // 新しく追加する関数
 
     // エフェクトの適用
     applyBlinkEffect(KEY_ONE, getInputBuffer()); // effects.js, inputHandler.jsから参照
@@ -85,5 +89,36 @@ function keyReleased() {
     if (keyCode === KEY_ZERO) {
         isZeroKeyPressed = false;
         // 離されたら即座に再描画（黒いrectが描画されなくなる）
+    }
+}
+
+// BPMの可視化と拍頭の更新を行う新しい関数
+function handleBeatVisualization() {
+    const beatInterval = 60000 / bpm; // 1拍のミリ秒数
+
+    if (millis() - lastBeatMillis >= beatInterval) {
+        lastBeatMillis += beatInterval; // 次の拍頭の基準を更新
+        currentBeat = (currentBeat + 1) % 4; // 0, 1, 2, 3 を繰り返す
+    }
+
+    const circleSize = 20;
+    const padding = 10;
+    const startX = width - (circleSize * 4 + padding * 3) - 20; // 右上からのオフセット
+    const startY = 20;
+
+    for (let i = 0; i < 4; i++) {
+        let circleX = startX + (circleSize + padding) * i;
+        let circleY = startY;
+
+        // 現在の拍に対応する丸を緑色に、それ以外を灰色にする
+        let displayColor = color(100); // 灰色
+        // 拍頭からFADE_OUT_DURATIONだけ緑色に光らせる
+        if (i === currentBeat && millis() - lastBeatMillis < FADE_OUT_DURATION) {
+             displayColor = color(0, 255, 0); // 緑色
+        }
+
+        fill(displayColor);
+        noStroke();
+        ellipse(circleX, circleY, circleSize, circleSize);
     }
 }

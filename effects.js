@@ -112,11 +112,71 @@ function overlay1(buffer) {
 
 function overlay2(buffer) {
   buffer.clear();
-  buffer.background(0, 50);
-  buffer.fill(255);
-  buffer.textSize(50);
-  buffer.textAlign(CENTER, CENTER);
-  buffer.text("OVERLAY 2 ACTIVE", buffer.width / 2, buffer.height / 2);
+  buffer.noFill();
+  buffer.stroke(0, 255, 0); // 緑色の文字
+
+  const textLifeSpan = 500; // 各文字の生存時間 (ミリ秒)
+
+  // 左上のテキスト
+  const topLeftText = [
+    "SYSTEM",
+    "INITIALIZING",
+    "..."
+  ];
+  let currentTopLeftCharTime = millis() - overlayActiveTime[1]; // overlay2開始からの時間
+
+  buffer.textSize(20);
+  buffer.textAlign(LEFT, TOP);
+  for (let i = 0; i < topLeftText.length; i++) {
+    let line = topLeftText[i];
+    for (let j = 0; j < line.length; j++) {
+      let charAlpha = 0;
+      let charStartTime = (i * line.length + j) * 50; // 各文字の表示開始を少しずらす
+      let charEndTime = charStartTime + textLifeSpan;
+
+      if (currentTopLeftCharTime >= charStartTime && currentTopLeftCharTime < charEndTime) {
+        charAlpha = map(currentTopLeftCharTime, charStartTime, charEndTime, 0, 255);
+      } else if (currentTopLeftCharTime >= charEndTime && currentTopLeftCharTime < charEndTime + textLifeSpan) {
+        charAlpha = map(currentTopLeftCharTime, charEndTime, charEndTime + textLifeSpan, 255, 0);
+      }
+      charAlpha = constrain(charAlpha, 0, 255);
+      buffer.fill(0, 255, 0, charAlpha);
+      buffer.text(line[j], 20 + buffer.textWidth(line.substring(0, j)), 20 + i * 25); // x座標を調整して文字送り
+    }
+  }
+  buffer.noFill(); // 次の描画のためにfillをリセット
+
+  // 右下のテキスト
+  const bottomRightText = [
+    "DATA STREAM:",
+    "RECEIVING PACKETS",
+    "ANALYZING",
+    "COMPLETE"
+  ];
+  let currentBottomRightCharTime = millis() - overlayActiveTime[1];
+
+  buffer.textSize(20);
+  buffer.textAlign(RIGHT, BOTTOM);
+  for (let i = 0; i < bottomRightText.length; i++) {
+    let line = bottomRightText[i];
+    for (let j = 0; j < line.length; j++) {
+      let charAlpha = 0;
+      let charStartTime = (i * line.length + j) * 50;
+      let charEndTime = charStartTime + textLifeSpan;
+
+      if (currentBottomRightCharTime >= charStartTime && currentBottomRightCharTime < charEndTime) {
+        charAlpha = map(currentBottomRightCharTime, charStartTime, charEndTime, 0, 255);
+      } else if (currentBottomRightCharTime >= charEndTime && currentBottomRightCharTime < charEndTime + textLifeSpan) {
+        charAlpha = map(currentBottomRightCharTime, charEndTime, charEndTime + textLifeSpan, 255, 0);
+      }
+      charAlpha = constrain(charAlpha, 0, 255);
+      buffer.fill(0, 255, 0, charAlpha);
+      let lineWidth = buffer.textWidth(line);
+      let charOffset = buffer.textWidth(line.substring(j + 1));
+      buffer.text(line[j], buffer.width - 20 - charOffset, buffer.height - 20 - (bottomRightText.length - 1 - i) * 25);
+    }
+  }
+  buffer.noFill();
 }
 
 function overlay3(buffer) {
