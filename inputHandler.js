@@ -3,6 +3,7 @@
 let inputBuffer = "";
 let intensity = 0; // 初期値をここに定義するか、config.jsに移動
 let bpm = 120; // 初期BPM
+let lastSectionMillis = 0;
 let lastBeatMillis = 0; // 最新の拍頭のmillisを保存する変数
 let currentBeat = 0; // 現在の拍数 (0-3で1,2,3,4拍目を表す)
 let tapTimes = []; // Mキーが押されたタイムスタンプを保持する配列 (ミリ秒)
@@ -130,6 +131,7 @@ function handleKeyPressed() {
     if (keyCode === 66) { // 'B'キー
         // lastBeatMillis を更新し、currentBeat を強制的に0にする
         lastBeatMillis = millis();
+        lastSessionMillis = millis();
         currentBeat = 0; // 1拍目(0)にリセット
         addLog("Beat reset to 1st beat by B key press.");
     }
@@ -163,8 +165,9 @@ function parseCommand(command) {
         } else {
             addLog("Scene " + sceneNum + " not found.");
         }
-    } else if (command.includes("=")) {
-        let [key, value] = command.split("=");
+    } else if (command.includes("o")) {
+        let key = command.slice(0, 1);
+        let value = command.slice(1);
         let currentScene = getCurrentScene(); // sceneManager.jsから参照
         if (currentScene.settings && key in currentScene.settings) {
             currentScene.settings[key] = value;

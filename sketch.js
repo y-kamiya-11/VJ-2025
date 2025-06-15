@@ -26,6 +26,7 @@ function setup() {
     initializeSceneManager(); // sceneManager.jsから参照
     initializeEffects();      // effects.jsから参照
     lastBeatMillis = millis(); // 初期値を設定
+    lastSectionMillis = lastBeatMillis;
 
     // バッファを初期化
     pausedFrameBuffer = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -113,7 +114,6 @@ function draw() {
     } else {
         // 通常の描画フロー
         updateSceneContents(); // シーンとエフェクトの更新・適用を別の関数にまとめる
-        image(currentBuffer, 0, 0);
     }
 
     // エフェクトの適用
@@ -205,6 +205,9 @@ function handleBeatVisualization() {
     if (millis() - lastBeatMillis >= beatInterval) {
         lastBeatMillis += beatInterval; // 次の拍頭の基準を更新
         currentBeat = (currentBeat + 1) % 4; // 0, 1, 2, 3 を繰り返す
+        if (currentBeat == 0) {
+            lastSectionMillis = lastBeatMillis;
+        }
     }
 
     const circleSize = 20;

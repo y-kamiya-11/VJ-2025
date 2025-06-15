@@ -130,8 +130,8 @@ function overlay2(buffer) {
 
   // 左上のテキスト
   const topLeftText = [
-    "SYSTEM",
-    "INITIALIZING",
+    "BAURAUM",
+    "vol.2",
     "..."
   ];
   let currentTopLeftCharTime = millis() - overlayActiveTime[1]; // overlay2開始からの時間
@@ -159,10 +159,8 @@ function overlay2(buffer) {
 
   // 右下のテキスト
   const bottomRightText = [
-    "DATA STREAM:",
-    "RECEIVING PACKETS",
-    "ANALYZING",
-    "COMPLETE"
+    "designing plus nine",
+    "at Koenji Theater Bacchus",
   ];
   let currentBottomRightCharTime = millis() - overlayActiveTime[1];
 
