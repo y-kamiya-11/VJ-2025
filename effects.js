@@ -271,7 +271,23 @@ function drawShapeOverlays() {
     } else if (s.type === 'cross') {
       line(-s.size / 2, -s.size / 2, s.size / 2, s.size / 2);
       line(s.size / 2, -s.size / 2, -s.size / 2, s.size / 2);
+    } else if (s.type === 'triangle') { // 三角形の追加
+      // 三角形の頂点を定義
+      // x1, y1, x2, y2, x3, y3
+      triangle(
+        -s.size / 2, s.size / 2,  // 左下
+        s.size / 2, s.size / 2,   // 右下
+        0, -s.size / 2            // 上中央
+      );
+    } else if (s.type === 'inverted_triangle') { // 逆三角形の追加
+      // 逆三角形の頂点を定義
+      triangle(
+        -s.size / 2, -s.size / 2, // 左上
+        s.size / 2, -s.size / 2,  // 右上
+        0, s.size / 2             // 下中央
+      );
     }
+
 
     blendMode(BLEND);
     pop();

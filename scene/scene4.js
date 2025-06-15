@@ -6,7 +6,7 @@ let scene4 = {
     noiseScale: 0.05,
     timeScale: 0.01,
     patternType: "noise", // "random" / "noise" / "symmetry" / "wave"
-    shapeType: "circle"   // "circle" / "text"
+    o: 1   // "circle" / "text"
   },
 
   dummyText: "BAURAUM PRE 02 KOENJI",
@@ -67,9 +67,9 @@ let scene4 = {
         let cx = x * this.settings.cellSize + this.settings.shapeSize / 2;
         let cy = y * this.settings.cellSize + this.settings.shapeSize / 2;
 
-        if (this.settings.shapeType === "circle") {
+        if (this.settings.o === 1) {
           g.ellipse(cx, cy, this.settings.shapeSize, this.settings.shapeSize);
-        } else if (this.settings.shapeType === "text") {
+        } else if (this.settings.o === 2) {
           if (isWhite) {
             g.fill(255);
             let char = this.dummyText.charAt(charCounter % textLength);

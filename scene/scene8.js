@@ -5,7 +5,7 @@ let scene8 = {
   _previousLinesPerOutput: null, // 出力行数の変更を検出するための内部変数
 
   settings: {
-    o: "1", // 1 or 2 or 3
+    o: 1, // 1 or 2 or 3
     frameCounter: 0,
     // 元の各種リストを一つの平坦なリストに統合
     // これにより、任意のN行ずつの出力に対応しやすくなります
@@ -312,7 +312,7 @@ let scene8 = {
     }
 
     // パターン1
-    if (this.settings.o == "1") {
+    if (this.settings.o == 1) {
         let listToUse;
         if (!this._initialPassDone) {
           listToUse = this.settings.firstPassLogList;
@@ -366,7 +366,7 @@ let scene8 = {
     }
 
     // パターン2
-    if (this.settings.o == "2") {
+    if (this.settings.o == 2) {
         for (let i = 0; i < 24; i++) {
             if ((i + this.settings.frameCounter) % 5 == 0) {
                 addLog("STATUS:" + "-".repeat(52) + "[RUNNING]");
@@ -383,7 +383,7 @@ let scene8 = {
     }
 
     // パターン3
-    if (this.settings.o == "3") {
+    if (this.settings.o == 3) {
         if (this.settings.frameCounter >= 84) {
             this.settings.frameCounter = 0;
         }
@@ -422,7 +422,7 @@ let scene8 = {
 
 
     // パターン4
-    if (this.settings.o == "4") {
+    if (this.settings.o == 4) {
         for (let i = 0; i < 24; i++) {
             if ((i + this.settings.frameCounter) % 5 == 0) {
                 let row = "";
@@ -457,7 +457,7 @@ let scene8 = {
     }
 
     // パターン5
-    if (this.settings.o == "5") {
+    if (this.settings.o == 5) {
         let headers = ["STATUS:", "CLIENT:", "KERNEL:", "STATUS:", "CLIENT:", "KERNEL:"];
         let header = headers[this.settings.frameCounter % 5];
         addLog(header + "...");

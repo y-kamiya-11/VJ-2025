@@ -13,7 +13,7 @@ let isZeroKeyPressed = false;
 const EFFECT_KEYS = [
     KEY_SPACE, KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR, KEY_FIVE, KEY_SIX, KEY_ZERO,
     KEY_SEVEN, KEY_EIGHT, KEY_NINE, KEY_D, KEY_F, KEY_J, KEY_K, KEY_M, KEY_N, KEY_C, 
-    KEY_V, KEY_B, KEY_MINUS, KEY_CARET_2
+    KEY_V, KEY_B, KEY_MINUS, KEY_CARET_2, KEY_S, KEY_L
 ]; // config.jsで定義した定数を参照
 
 function handleKeyTyped() {
@@ -98,6 +98,12 @@ function handleKeyPressed() {
     if (keyCode === KEY_K) {
         addShapeOverlay('cross');
     }
+    if (keyCode === KEY_S) {
+        addShapeOverlay('inverted_triangle');
+    }
+    if (keyCode === KEY_L) {
+        addShapeOverlay('triangle');
+    }
 
     if (keyCode === 77) { // 'M'キー
         // 既存のMキーのBPM計算ロジック
@@ -158,16 +164,16 @@ function handleKeyPressed() {
 }
 
 function parseCommand(command) {
-    if (command.startsWith("s")) {
+    if (command.startsWith("a")) {
         let sceneNum = command.slice(1);
         if (scenes[sceneNum]) { // config.jsから参照
             switchScene(scenes[sceneNum]); // sceneManager.jsから参照
         } else {
             addLog("Scene " + sceneNum + " not found.");
         }
-    } else if (command.includes("o")) {
+    } else if (command.startsWith("o")) {
         let key = command.slice(0, 1);
-        let value = command.slice(1);
+        let value = Number(command.slice(1));
         let currentScene = getCurrentScene(); // sceneManager.jsから参照
         if (currentScene.settings && key in currentScene.settings) {
             currentScene.settings[key] = value;
