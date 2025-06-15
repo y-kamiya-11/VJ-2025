@@ -79,7 +79,7 @@ let scene11 = {
         type: 'rect',
         birthTime: lastSectionMillis,
         initialScale: g.width,
-        strokeWeight: 1
+        strokeWeight: 4
       });
       this._lastGeneratedThinRectBarIndex = currentBarIndex;
     }
@@ -90,7 +90,7 @@ let scene11 = {
         type: 'rect',
         birthTime: lastSectionMillis,
         initialScale: g.width,
-        strokeWeight: 5
+        strokeWeight: 10
       });
       this._lastGeneratedThickRectBarIndex = currentTwoBarIndex;
     }
