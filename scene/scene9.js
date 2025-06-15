@@ -3,12 +3,13 @@ let scene9 = {
     backgroundColor: null,
     rectangles: [], // 初期化時に空であることを確認
     texts: [
-      "Ⅳ△7", "Ⅲ", "Ⅲm7/Ⅵ", "Ⅰ7",
-      "Ⅱm7", "♭Ⅶ7", "Ⅱm7", "Ⅴm7",
-      "Ⅶm7-5", "Ⅴ7", "Ⅲm7", "Ⅰaug/♯Ⅳ",
-      "Ⅳm7", "Ⅴm7", "♭Ⅶ△7", "♯Ⅳm7-5"
+      "Ⅳ△7 ただ", "Ⅲ 選択が", "Ⅲm7/Ⅵ あった", "Ⅰ7",
+      "Ⅱm7 まだ", "♭Ⅶ7 後悔が", "Ⅱm7 続く", "Ⅴm7 でも",
+      "Ⅶm7-5 絶えず", "Ⅴ7 可能性が", "Ⅲm7 積もる", "Ⅰaug/♯Ⅳ こともなく",
+      "Ⅳm7 いま", "Ⅴm7 輪廻が", "♭Ⅶ△7 終わる", "♯Ⅳm7-5 そして"
     ],
     lastFlashTime: 0,
+    nextFlashBeat: 0, // 0か2
     halfNoteInterval: 0, // 2分音符の間隔 (ms)
 
     // 光る順番を指定する配列の配列
@@ -151,7 +152,7 @@ let scene9 = {
 
 
     // 2分音符ごとにシーケンスに従って長方形を光らせる
-    if (millis() - this.settings.lastFlashTime > this.settings.halfNoteInterval) {
+    if (this.settings.nextFlashBeat == currentBeat) {
       // 前回光っていた長方形を元に戻す
       if (this.settings.flashingRectangleIndex !== -1) {
         this.settings.rectangles[this.settings.flashingRectangleIndex].isFlashing = false;
@@ -185,7 +186,11 @@ let scene9 = {
         // isSequenceActive は次のシーケンスの最初の要素が光るまでtrueのまま
       }
 
-      this.settings.lastFlashTime = millis();
+      if (this.settings.nextFlashBeat == 0) {
+        this.settings.nextFlashBeat = 2;
+      } else if (this.settings.nextFlashBeat == 2) {
+        this.settings.nextFlashBeat = 0;
+      }
     }
 
     g.textAlign(g.CENTER, g.CENTER);
@@ -199,23 +204,6 @@ let scene9 = {
       let textContent = this.settings.texts[i];
 
       // デフォルトの描画設定
-      g.noStroke(); // 枠なし
-      g.fill(50); // ダークグレー塗り (RGB 50,50,50)
-
-      // 光っている長方形の描画
-      if (rect.isFlashing) {
-        g.fill(255); // 白で塗りつぶす
-        g.stroke(255); // 白枠
-        g.strokeWeight(2);
-        g.rect(rect.x, rect.y, rect.width, rect.height);
-        g.fill(0); // 文字を黒にする
-      } else {
-        // デフォルトの描画（ダークグレー塗り、枠なし）
-        g.noStroke();
-        g.fill(50);
-        g.rect(rect.x, rect.y, rect.width, rect.height);
-        g.fill(255); // 文字を白にする
-      }
 
       // シーケンスがアクティブな場合、該当する長方形の枠を白にする
       if (this.settings.isSequenceActive && this.settings.currentActiveRectIndices.includes(i)) {
@@ -233,6 +221,24 @@ let scene9 = {
           rect: rect,
           index: i
         }); // インデックスも一緒に保存
+
+      }
+
+      // 光っている長方形の描画
+      g.noStroke(); // 枠なし
+      g.fill(50); // ダークグレー塗り (RGB 50,50,50)
+      if (rect.isFlashing) {
+        g.fill(255); // 白で塗りつぶす
+        g.stroke(255); // 白枠
+        g.strokeWeight(2);
+        g.rect(rect.x, rect.y, rect.width, rect.height);
+        g.fill(0); // 文字を黒にする
+      } else {
+        // デフォルトの描画（ダークグレー塗り、枠なし）
+        g.noStroke();
+        g.fill(50);
+        g.rect(rect.x, rect.y, rect.width, rect.height);
+        g.fill(255); // 文字を白にする
       }
 
       // 中央に文字を配置
