@@ -45,9 +45,10 @@ function applyGlowEffect(currentBuffer, inputBuffer) {
 
     blendMode(ADD);
     tint(255, glowAlpha);
-    glowBuffer.filter(BLUR, 8);
+    // glowBuffer.filter(BLUR, 8);
     image(glowBuffer, 0, 0);
-    glowBuffer.filter(BLUR, 32);
+    // glowBuffer.filter(BLUR, 32);
+    image(glowBuffer, 0, 0);
     image(glowBuffer, 0, 0);
     noTint();
     blendMode(BLEND);

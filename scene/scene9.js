@@ -110,7 +110,7 @@ let scene9 = {
     this.settings.halfNoteInterval = (60000 / bpm) * 2;
 
     // 2分音符ごとにシーケンスに従って長方形を光らせる
-    if (g.millis() - this.settings.lastFlashTime > this.settings.halfNoteInterval) {
+    if (millis() - this.settings.lastFlashTime > this.settings.halfNoteInterval) {
       // 前回光っていた長方形を元に戻す
       if (this.settings.flashingRectangleIndex !== -1) {
         this.settings.rectangles[this.settings.flashingRectangleIndex].isFlashing = false;
@@ -142,7 +142,7 @@ let scene9 = {
         // isSequenceActive は次のシーケンスの最初の要素が光るまでtrueのまま
       }
 
-      this.settings.lastFlashTime = g.millis();
+      this.settings.lastFlashTime = millis();
     }
 
     g.textAlign(g.CENTER, g.CENTER); // ここも g.CENTER に修正

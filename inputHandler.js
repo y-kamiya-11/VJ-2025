@@ -11,7 +11,8 @@ let isZeroKeyPressed = false;
 // 効果キーのリスト
 const EFFECT_KEYS = [
     KEY_SPACE, KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR, KEY_FIVE, KEY_SIX, KEY_ZERO,
-    KEY_SEVEN, KEY_EIGHT, KEY_NINE, KEY_D, KEY_F, KEY_J, KEY_K, KEY_M, KEY_N, KEY_C, KEY_V, KEY_B
+    KEY_SEVEN, KEY_EIGHT, KEY_NINE, KEY_D, KEY_F, KEY_J, KEY_K, KEY_M, KEY_N, KEY_C, 
+    KEY_V, KEY_B, KEY_MINUS, KEY_CARET_2
 ]; // config.jsで定義した定数を参照
 
 function handleKeyTyped() {
@@ -132,11 +133,31 @@ function handleKeyPressed() {
         currentBeat = 0; // 1拍目(0)にリセット
         addLog("Beat reset to 1st beat by B key press.");
     }
+
+    // マイナスキーが押されたら映像停止
+    if (keyCode === 189) { // マイナスキーのkeyCode
+        if (!isMinusKeyPressed) {
+            // 停止する瞬間の描画内容をバッファにコピー
+            pausedFrameBuffer.image(currentBuffer, 0, 0); // currentBufferの最新の内容をコピー
+            isMinusKeyPressed = true;
+            addLog("Video Paused.");
+        }
+    }
+    // キャレットキーが押されたらカクカク表示
+    if (keyCode === 220 || keyCode == 222) { // ^キーのkeyCode (JP keyboard)
+        if (!isCaretKeyPressed) {
+            isCaretKeyPressed = true;
+            nextUpdateBeatMillis = lastBeatMillis; // 現在の拍頭から開始
+            // 厳密には、次の16分音符のタイミングを計算して設定すべきだが、
+            // ここでは簡易的にlastBeatMillisから始める
+            addLog("Jittery Mode ON.");
+        }
+    }
 }
 
 function parseCommand(command) {
-    if (command.startsWith("s=")) {
-        let sceneNum = command.split("=")[1];
+    if (command.startsWith("s")) {
+        let sceneNum = command.slice(1);
         if (scenes[sceneNum]) { // config.jsから参照
             switchScene(scenes[sceneNum]); // sceneManager.jsから参照
         } else {

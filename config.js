@@ -36,6 +36,9 @@ const KEY_DOWN_ARROW = 40;
 const KEY_C = 67; // 'C'キー
 const KEY_V = 86; // 'V'キー
 const KEY_B = 66;
+const KEY_MINUS = 189;
+const KEY_CARET_1 = 220;
+const KEY_CARET_2 = 222;
 
 // BPM設定
 const BPM_INITIAL = 120;

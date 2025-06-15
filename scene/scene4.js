@@ -13,7 +13,7 @@ let scene4 = {
   charIndexOffset: 0, // ← これで1フレームごとに+1する
 
   setupScene(g) {
-    this.settings.backgroundColor = color(0);
+    this.settings.backgroundColor = color(20);
   },
 
   drawScene(g) {

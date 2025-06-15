@@ -4,6 +4,17 @@ let customFont;
 let fadeStartTime = 0;
 const FADE_OUT_DURATION = 200; // 1秒
 
+// 新しいグローバル変数
+let isMinusKeyPressed = false;
+let pausedFrameBuffer; // 映像停止時に保持するバッファ
+let isCaretKeyPressed = false;
+let nextUpdateBeatMillis; // カクカク表示で次の更新を行うbeatMillis
+
+// 各キーの前フレームでの状態を保持するためのフラグ
+let wasZeroKeyPressedLastFrame = false;
+let wasMinusKeyPressedLastFrame = false;
+let wasCaretKeyPressedLastFrame = false; // キャレットキーの実際のkeyCodeに合わせて調整してください
+
 function preload() {
     customFont = loadFont('assets/fonts/BestTen-CRT.otf');
 }
@@ -15,12 +26,95 @@ function setup() {
     initializeSceneManager(); // sceneManager.jsから参照
     initializeEffects();      // effects.jsから参照
     lastBeatMillis = millis(); // 初期値を設定
+
+    // バッファを初期化
+    pausedFrameBuffer = createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT);
+    nextUpdateBeatMillis = lastBeatMillis; // 初期値を設定
 }
 
 function draw() {
-    
-    // シーンの更新と描画
-    updateAndDrawScenes(); // sceneManager.jsから参照
+    // --- KEY_ZERO の状態管理 ---
+    const isZeroKeyNowDown = keyIsDown(KEY_ZERO);
+    if (isZeroKeyNowDown && !wasZeroKeyPressedLastFrame) {
+        // キーが押された瞬間
+        isZeroKeyPressed = true;
+        fadeStartTime = millis(); // フェードアウト開始時刻を記録
+    } else if (!isZeroKeyNowDown && wasZeroKeyPressedLastFrame) {
+        // キーが離された瞬間
+        isZeroKeyPressed = false;
+    }
+    wasZeroKeyPressedLastFrame = isZeroKeyNowDown;
+
+    // --- マイナスキー (keyCode 189) の状態管理 ---
+    const isMinusKeyNowDown = keyIsDown(KEY_MINUS); // マイナスキーのkeyCode
+    if (isMinusKeyNowDown && !wasMinusKeyPressedLastFrame) {
+        // キーが押された瞬間
+        if (!isMinusKeyPressed) { // 二重ロック（念のため）
+            pausedFrameBuffer.copy(currentBuffer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // currentBufferの最新の内容をコピー
+            isMinusKeyPressed = true;
+            addLog("Video Paused.");
+        }
+    } else if (!isMinusKeyNowDown && wasMinusKeyPressedLastFrame) {
+        // キーが離された瞬間
+        isMinusKeyPressed = false;
+        addLog("Video Resumed.");
+    }
+    wasMinusKeyPressedLastFrame = isMinusKeyNowDown;
+
+    // --- キャレットキー (keyCode 220 or 222) の状態管理 ---
+    // あなたの環境での正確なkeyCodeに置き換えてください
+    const isCaretKeyNowDown = keyIsDown(KEY_CARET_1) || keyIsDown(KEY_CARET_2);
+
+    if (isCaretKeyNowDown && !wasCaretKeyPressedLastFrame) {
+        // キーが押された瞬間
+        if (!isCaretKeyPressed) { // 二重ロック（念のため）
+            isCaretKeyPressed = true;
+            // カクカク表示開始時にも、現在のフレームをpausedFrameBufferにコピーしておく
+            pausedFrameBuffer.copy(currentBuffer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            nextUpdateBeatMillis = lastBeatMillis; // 現在の拍頭から開始
+            addLog("Jittery Mode ON.");
+        }
+    } else if (!isCaretKeyNowDown && wasCaretKeyPressedLastFrame) {
+        // キーが離された瞬間
+        isCaretKeyPressed = false;
+        addLog("Jittery Mode OFF.");
+    }
+    wasCaretKeyPressedLastFrame = isCaretKeyNowDown;
+
+
+
+    // マイナスキーが押されている場合
+    if (isMinusKeyPressed) {
+        // 停止中のフレームバッファを描画し、以降の描画処理をスキップ
+        image(pausedFrameBuffer, 0, 0);
+        drawLogs(); // ログは表示し続ける
+        handleBeatVisualization(); // BPMの可視化も表示し続ける
+        return; // 以降の描画処理をスキップ
+    }
+
+    // キャレットキーが押されている場合（カクカク表示）
+    if (isCaretKeyPressed) {
+        const beatInterval = 60000 / bpm;
+        const sixteenthNoteInterval = beatInterval / 4; // 16分音符の間隔
+
+        // 16分音符のタイミングになったらcurrentBufferを更新してpausedFrameBufferにコピー
+        nowMillis = millis();
+        if (nowMillis >= nextUpdateBeatMillis) {
+            updateSceneContents(); // シーンとエフェクトの更新・適用
+            pausedFrameBuffer.copy(currentBuffer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            nextUpdateBeatMillis += sixteenthNoteInterval;
+            // 複数の16分音符が過ぎていたら、次の更新タイミングを現在のmillis()に最も近い未来の16分音符のタイミングに調整
+            while (nowMillis >= nextUpdateBeatMillis) {
+                nextUpdateBeatMillis += sixteenthNoteInterval;
+            }
+        }
+        // 常にpausedFrameBufferを描画
+        image(pausedFrameBuffer, 0, 0);
+    } else {
+        // 通常の描画フロー
+        updateSceneContents(); // シーンとエフェクトの更新・適用を別の関数にまとめる
+        image(currentBuffer, 0, 0);
+    }
 
     // エフェクトの適用
     applyBlinkEffect(KEY_ONE, getInputBuffer()); // effects.js, inputHandler.jsから参照
@@ -84,13 +178,25 @@ function keyPressed() {
     handleKeyPressed(); // inputHandler.jsから参照
 }
 
-function keyReleased() {
+/*function keyReleased() {
     // 0キーが離されたときの処理
     if (keyCode === KEY_ZERO) {
         isZeroKeyPressed = false;
         // 離されたら即座に再描画（黒いrectが描画されなくなる）
     }
-}
+
+    // マイナスキーが離されたら映像再開
+    if (keyCode === 189) {
+        isMinusKeyPressed = false;
+        addLog("Video Resumed.");
+    }
+
+    // キャレットキーが離されたら通常の表示に戻す
+    if (keyCode === 220 || keyCode == 222) {
+        isCaretKeyPressed = false;
+        addLog("Jittery Mode OFF.");
+    }
+}*/
 
 // BPMの可視化と拍頭の更新を行う新しい関数
 function handleBeatVisualization() {
@@ -121,4 +227,11 @@ function handleBeatVisualization() {
         noStroke();
         ellipse(circleX, circleY, circleSize, circleSize);
     }
+}
+
+// シーンとエフェクトの更新・適用処理をまとめた新しい関数
+function updateSceneContents() {
+    // シーンの更新と描画
+    updateAndDrawScenes(); // sceneManager.jsから参照
+    // ここで currentBuffer に最新のシーン内容が描画されているはず
 }
